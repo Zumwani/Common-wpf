@@ -22,5 +22,5 @@ jobs:
     - name: Publish Common-wpf.Settings
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
-          PROJECT_FILE_PATH: Common.Settings/Common.Settings.Core.csproj
+          PROJECT_FILE_PATH: Common.Settings/Common.Settings.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
