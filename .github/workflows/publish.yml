@@ -13,11 +13,12 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: net5.0-windows
+        dotnet-version: 5.x
     - name: Install dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
+
     - name: Publish Common-wpf.Settings
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
