@@ -9,9 +9,11 @@
     <Authors>Common-wpf</Authors>
     <PackageId>Common-wpf.Settings</PackageId>
     <Product>Common-wpf.Settings</Product>
-    <Description>Provides a quick and easy way to create settings for your app that is easily accessable from both xaml and code behind.</Description>
+    <Description>Provides a quick and easy way to create settings for your wpf app that is easily accessable from both xaml and code behind.</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/Zumwani/Common-wpf</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Zumwani/Common-wpf</RepositoryUrl>
+    <PackageTags>wpf;settings;config;configuration;xaml;</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
