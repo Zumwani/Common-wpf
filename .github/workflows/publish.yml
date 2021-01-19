@@ -24,7 +24,7 @@ jobs:
 
     - name: Increment version
       run: VersionIncrementer.exe Common.Settings/Common.Settings.csproj
-      - name: Increment version
+    - name: Increment version
       run: VersionIncrementer.exe Common.Utility/Common.Utility.csproj
 
     - name: Publish Common-wpf.Settings
