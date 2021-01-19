@@ -5,8 +5,4 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /B /Y /V &quot;$(OutDir)\$(TargetName).exe&quot; &quot;$(SolutionDir)\$(TargetName).exe&quot;&#xD;&#xA;copy /B /Y /V &quot;$(OutDir)\$(TargetName).dll&quot; &quot;$(SolutionDir)\$(TargetName).dll&quot;&#xD;&#xA;copy /B /Y /V &quot;$(OutDir)\Common.VersionIncrementer.deps.json&quot; &quot;$(SolutionDir)\Common.VersionIncrementer.deps.json&quot;&#xD;&#xA;copy /B /Y /V &quot;$(OutDir)\Common.VersionIncrementer.runtimeconfig.json&quot; &quot;$(SolutionDir)\Common.VersionIncrementer.runtimeconfig.json&quot;" />
-  </Target>
-
 </Project>
