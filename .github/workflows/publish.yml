@@ -23,7 +23,7 @@ jobs:
       run: dotnet build --configuration Release --no-restore
 
     - name: Increment version
-      run: VersionIncrementer.exe Common.Settings/Common.Settings.csproj
+      run: | VersionIncrementer.exe Common.Settings/Common.Settings.csproj
       run: VersionIncrementer.exe Common.Utility/Common.Utility.csproj
 
     - name: Publish Common-wpf.Settings
