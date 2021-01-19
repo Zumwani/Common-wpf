@@ -15,15 +15,15 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.100
-
     - name: Install dependencies
       run: dotnet restore
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
 
-    -name: Increment version
-    -run: VersionIncrementer.exe Common.Settings/Common.Settings.csproj
+    - name: Increment version
+    - run: VersionIncrementer.exe Common.Settings/Common.Settings.csproj
+    - run: VersionIncrementer.exe Common.Utility/Common.Utility.csproj
 
     - name: Publish Common-wpf.Settings
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -31,9 +31,6 @@ jobs:
           PROJECT_FILE_PATH: Common.Settings/Common.Settings.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           TAG_COMMIT: false
-
-    -name: Increment version
-    -run: VersionIncrementer.exe Common.Utility/Common.Utility.csproj
 
     - name: Publish Common-wpf.Utility
       uses: brandedoutcast/publish-nuget@v2.5.2
