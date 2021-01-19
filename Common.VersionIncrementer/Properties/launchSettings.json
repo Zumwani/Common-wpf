@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Common.VersionIncrementer": {
+      "commandName": "Project",
+      "commandLineArgs": "Common.Settings/Common.Settings.csproj"
+    }
+  }
+}

@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Common-wpf</Authors>
     <PackageId>Common-wpf.Utility</PackageId>
@@ -14,7 +14,6 @@
     <PackageProjectUrl>https://github.com/Zumwani/Common-wpf</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Zumwani/Common-wpf</RepositoryUrl>
     <PackageTags>wpf;xaml;</PackageTags>
-    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,9 +26,5 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
-
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="&quot;$(SolutionDir)\Common.VersionIncrementer.exe&quot; &quot;$(ProjectPath)&quot;" />
-  </Target>
 
 </Project>

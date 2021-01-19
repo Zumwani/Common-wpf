@@ -10,6 +10,7 @@ using System.Windows.Threading;
 namespace Common
 {
 
+    /// <summary>A non-generic representation of a setting, implemented by <see cref="Setting{T, TSelf}"/>, and used by <see cref="SettingsUtility"/>.</summary>
     public interface ISetting
     {
         public object Value { get; set; }
@@ -97,7 +98,7 @@ namespace Common
         void DoWrite()
         {
             Debug.WriteLine("Write: " + Key);
-            using var key = Settings.RegKey(writable: true);
+            using var key = SettingsUtility.RegKey(writable: true);
             key.SetValue(Key, Value);
             WriteTimer.Stop();
         }
@@ -120,7 +121,7 @@ namespace Common
         T Read()
         {
 
-            using var key = Settings.RegKey();
+            using var key = SettingsUtility.RegKey();
             var value = key?.GetValue(Key, DefaultValue);
 
             if (Convert.ChangeType(value, typeof(T)) is T t)
@@ -133,7 +134,7 @@ namespace Common
         /// <summary>Deletes the value from registry.</summary>
         void DeleteValue()
         {
-            using var key = Settings.RegKey(writable: true);
+            using var key = SettingsUtility.RegKey(writable: true);
             key?.DeleteValue(Key);
         }
 

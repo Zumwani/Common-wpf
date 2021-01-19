@@ -37,6 +37,9 @@ namespace Common.VersionIncrementer
 
             var projectFile = args.FirstOrDefault();
 
+            if (!projectFile.Contains(":"))
+                projectFile = Path.Combine(Directory.GetCurrentDirectory(), projectFile);
+
             if (!File.Exists(projectFile))
                 throw new FileNotFoundException(message: null, fileName: projectFile);
 

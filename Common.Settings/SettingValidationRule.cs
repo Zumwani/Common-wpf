@@ -3,6 +3,8 @@ using System.Windows.Controls;
 
 namespace Common
 {
+
+    /// <summary>Calls Setting.Validate() and returns a <see cref="ValidationResult"/> with the value.</summary>
     public class SettingValidationRule : ValidationRule
     {
 
