@@ -14,6 +14,7 @@
     <RepositoryUrl>https://github.com/Zumwani/Common-wpf</RepositoryUrl>
     <PackageTags>wpf;xaml;settings;config;configuration;</PackageTags>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+    <Version></Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +25,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(BuildingInsideVisualStudio)' == 'true'">
-    <Exec Command="&quot;$(SolutionDir)\VersionIncrementer.exe&quot; &quot;$(ProjectDir)\Version.props&quot;"/>
+    <Exec Command="&quot;$(SolutionDir)\VersionIncrementer.exe&quot; -increment &quot;$(ProjectPath)&quot; &quot;$(ProjectDir)\Version.props&quot;" />
   </Target>
-  
+
 </Project>
