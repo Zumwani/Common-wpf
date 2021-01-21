@@ -62,10 +62,10 @@ namespace Common.VersionIncrementer
 
             //Check if files exist
             if (!File.Exists(projectFile))
-                throw new FileNotFoundException(message: null, fileName: projectFile);
+                throw new FileNotFoundException(message: "The project file could not be found", fileName: projectFile);
             
             if (!File.Exists(versionFile))
-                throw new FileNotFoundException(message: null, fileName: versionFile);
+                throw new FileNotFoundException(message: "The version file could not be found", fileName: versionFile);
 
             return (mode, projectFile, versionFile);
 

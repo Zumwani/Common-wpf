@@ -24,11 +24,13 @@ jobs:
 
     - name: Copy version to project file
       continue-on-error: false
-      run: D:/a/Common-wpf/Common-wpf/VersionIncrementer.exe -copy Common.Settings/Common.Settings.csproj Common.Settings/Version.props
+      run: |
+        ./VersionIncrementer.exe -copy Common.Settings/Common.Settings.csproj Common.Settings/Version.props
 
     - name: Copy version to project file
       continue-on-error: false
-      run: D:/a/Common-wpf/Common-wpf/VersionIncrementer.exe -copy Common.Utility/Common.Utility.csproj Common.Utility/Version.props
+      run: |
+        ./VersionIncrementer.exe -copy Common.Utility/Common.Utility.csproj Common.Utility/Version.props
 
     - name: Publish Common-wpf.Settings
       continue-on-error: true
