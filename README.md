@@ -74,9 +74,7 @@ public Window : System.Windows.Window
       Settings.WindowTitle.Current.Value = "This is an example";
 
       //Access list of all settings
-      Common.Settings.Initialize(); //Must be called when using Settings.All since
-      //settings are lazily loaded, and are not added until first accessed otherwise.
-      foreach (var setting in Common.Settings.All)
+      foreach (var setting in Common.SettingsUtility.AllSettings)
           Debug.WriteLine(setting.DisplayName ?? setting.Key + ": " + setting.Value?.ToString());
 
     }
@@ -86,3 +84,7 @@ public Window : System.Windows.Window
 ```
 
 ## Common.Utility
+Contains utility functions for wpf.
+
+> static class WindowUtility\
+Contains extension methods for centering windows and also a function to clamp window position to bounds of screen(s).

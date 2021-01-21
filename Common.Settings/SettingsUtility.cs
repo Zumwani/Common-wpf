@@ -14,7 +14,7 @@ namespace Common
 
         static SettingsUtility()
         {
-            AllInitialized = new ReadOnlyObservableCollection<ISetting>(list);
+            InitializedSettings = new ReadOnlyObservableCollection<ISetting>(list);
             if (Application.Current != null)
             {
                 Application.Current.Exit += (s, e) => EnsureWritten();
@@ -41,18 +41,18 @@ namespace Common
         /// <para>All initialized settings defined for this app.</para>
         /// <para>Note: Unless <see cref="Initialize"/> is called, settings are lazily loaded and will only be initialized once accessed for the first time, and will as a result not be added to this list until then.</para>
         /// </summary>
-        public static ReadOnlyObservableCollection<ISetting> AllInitialized { get; }
+        public static ReadOnlyObservableCollection<ISetting> InitializedSettings { get; }
 
         /// <summary>
-        /// <para>All settings defined for this app.</para>
-        /// <para>Note: Convience property that can be easily be binded to, calls <see cref="Initialize"/> and returns <see cref="AllInitialized"/>.</para>
+        /// <para>All settings defined for this app. Initializes all settings.</para>
+        /// <para>Note: Convience property that can be easily be binded to, calls <see cref="Initialize"/> and returns <see cref="InitializedSettings"/>.</para>
         /// </summary>
-        public static ReadOnlyObservableCollection<ISetting> All
+        public static ReadOnlyObservableCollection<ISetting> AllSettings
         {
             get
             {
                 Initialize();
-                return AllInitialized;
+                return InitializedSettings;
             }
         }
 
@@ -63,7 +63,7 @@ namespace Common
             if (!ignoreUninitializedSettings)
                 Initialize();
 
-            foreach (var setting in AllInitialized)
+            foreach (var setting in InitializedSettings)
                 setting.Reset();
 
         }
@@ -85,7 +85,7 @@ namespace Common
         /// </summary>
         public static void EnsureWritten()
         {
-            foreach (var setting in AllInitialized)
+            foreach (var setting in InitializedSettings)
                 if (setting.WriteTimer.IsEnabled)
                 {
                     setting.WriteTimer.Stop();

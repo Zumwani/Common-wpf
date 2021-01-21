@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 
 namespace Common.VersionIncrementer
@@ -15,12 +16,22 @@ namespace Common.VersionIncrementer
             try
             {
 
-                var path = GetProjectFile(args);
+                var (path, isSetHasChanged) = GetProjectFile(args);
                 var text = File.ReadAllText(path);
-                (string name, Version newVersion) = Increment(ref text);
+
+                string name = "";
+                Version newVersion = null;
+                if (isSetHasChanged)
+                    Increment(ref text, out name, out newVersion);
+                else
+                    SetHasChanged(ref text, out name, true);
 
                 File.WriteAllText(path, text);
-                Console.WriteLine(name + " incremented to: " + newVersion);
+
+                if (isSetHasChanged)
+                    Console.WriteLine(name + "HasChanged changed to: true");
+                else
+                    Console.WriteLine(name + " incremented to: " + newVersion);
 
             }
             catch (Exception e)
@@ -32,7 +43,7 @@ namespace Common.VersionIncrementer
 
         }
 
-        static string GetProjectFile(string[] args)
+        static (string path, bool isSetChanged) GetProjectFile(string[] args)
         {
 
             var projectFile = args.FirstOrDefault();
@@ -46,26 +57,72 @@ namespace Common.VersionIncrementer
             if (!projectFile.EndsWith(".csproj"))
                 throw new ArgumentException("Invalid project file");
 
-            return projectFile;
+            var isSetChanged = args.Length > 1 && args[1] == "-setHasChanged";
+
+            return (projectFile, isSetChanged);
 
         }
 
-        static (string name, Version newVersion) Increment(ref string text)
+        static string Hash(ref string text, string newValue = "")
+        {
+            if (!string.IsNullOrEmpty(newValue))
+                ChangeTagValue(ref text, out newValue, "Hash", h => newValue);
+            return newValue;
+        }
+
+        static void Increment(ref string text, out Version newVersion) =>
+            ChangeTagValue(ref text, out newVersion, "Version", current => current.BumpBuild());
+
+        static void ChangeTagValue<T>(ref string text, out T newValue, string tag, Func<T, T> setValue)
         {
 
-            if (!(text.Contains("<Version>") && text.Contains("</Version>")))
-                throw new ArgumentException("No version tag exists.");
+            newValue = default;
+            if (GetTag(text, tag, out var value, out var fullValue))
+            {
+                newValue = (T)Convert.ChangeType(setValue.Invoke((T)Convert.ChangeType(value, typeof(T))), typeof(T));
+                text = text.Replace(fullValue, $"<{tag}>{newValue}</{tag}>");
+            }
 
-            var match = Regex.Match(text, "<Version>(.*)</Version>");
-            var currentVersion = new Version(match.Groups[1].ToString());
-            var newVersion = new Version(currentVersion.Major, currentVersion.Minor, currentVersion.Build + 1);
+        }
 
-            text = text.Replace(match.Value, $"<Version>{newVersion}</Version>");
+        static string GetTagValue(string text, string tag)
+        {
+            GetTag(text, tag, out var value, out var _);
+            return value;
+        }
 
-            var nameMatch = Regex.Match(text, "<Product>(.*)</Product>");
-            var name = nameMatch.Groups.Count == 2 ? nameMatch.Groups[1].ToString() : "Unknown";
+        static bool GetTag(string text, string tag, out string value) =>
+            GetTag(text, tag, out value, out var _);
 
-            return (name, newVersion);
+        static bool GetTag(string text, string tag, out string value, out string fullValue)
+        {
+
+            value = null;
+            fullValue = null;
+
+            if (!(text.Contains($"<{tag}>") && text.Contains($"</{tag}>")))
+                return false;
+
+            var match = Regex.Match(text, $"<{tag}>(.*)</{tag}>");
+            if (match.Groups.Count > 1)
+            {
+                value = match.Groups[1].Value;
+                fullValue = match.Value;
+                return true;
+            }
+            else
+                return false;
+
+        }
+
+        public static string GetName(string text) =>
+            GetTagValue(text, "Product") ?? "Unknown";
+
+        public static Version BumpBuild(this Version version) =>
+            new Version(version.Major, version.Minor, version.Build + 1);
+
+        public static string GetHash(string projectFile)
+        {
 
         }
 
