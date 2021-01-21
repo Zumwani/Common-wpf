@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: windows-latest
     allow-failure: true
-    
+
     steps:
     - uses: actions/checkout@v2
 
@@ -25,6 +25,8 @@ jobs:
 
     - name: Copy version to project file
     - run: ./VersionIncrementer.exe -copy Common.Settings/Common.Settings.csproj Common.Settings/Version.props
+
+    - name: Copy version to project file
     - run: ./VersionIncrementer.exe -copy Common.Utility/Common.Utility.csproj Common.Utility/Version.props
 
     - name: Publish Common-wpf.Settings
