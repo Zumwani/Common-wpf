@@ -23,10 +23,12 @@ jobs:
       run: dotnet build --configuration Release --no-restore
 
     - name: Copy version to project file
-      run: ./VersionIncrementer.exe -copy Common.Settings/Common.Settings.csproj Common.Settings/Version.props
+      continue-on-error: false
+      run: D:/a/Common-wpf/Common-wpf/VersionIncrementer.exe -copy Common.Settings/Common.Settings.csproj Common.Settings/Version.props
 
     - name: Copy version to project file
-      run: ./VersionIncrementer.exe -copy Common.Utility/Common.Utility.csproj Common.Utility/Version.props
+      continue-on-error: false
+      run: D:/a/Common-wpf/Common-wpf/VersionIncrementer.exe -copy Common.Utility/Common.Utility.csproj Common.Utility/Version.props
 
     - name: Publish Common-wpf.Settings
       continue-on-error: true
