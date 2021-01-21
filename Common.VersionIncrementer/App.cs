@@ -13,37 +13,19 @@ namespace Common.VersionIncrementer
         static void Main(string[] args)
         {
 
-            try
-            {
+            var path = GetProjectFile(args);
+            var text = File.ReadAllText(path);
 
-                var (path, isSetHasChanged) = GetProjectFile(args);
-                var text = File.ReadAllText(path);
+            Increment(ref text, out var newVersion);
 
-                string name = "";
-                Version newVersion = null;
-                if (isSetHasChanged)
-                    Increment(ref text, out name, out newVersion);
-                else
-                    SetHasChanged(ref text, out name, true);
+            File.WriteAllText(path, text);
 
-                File.WriteAllText(path, text);
-
-                if (isSetHasChanged)
-                    Console.WriteLine(name + "HasChanged changed to: true");
-                else
-                    Console.WriteLine(name + " incremented to: " + newVersion);
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.GetType().Name + ":");
-                Console.WriteLine(e.Message);
-                //Console.Read();
-            }
+            var name = GetName(text);
+            Console.WriteLine(name + " version incremented to: " + newVersion);
 
         }
 
-        static (string path, bool isSetChanged) GetProjectFile(string[] args)
+        static string GetProjectFile(string[] args)
         {
 
             var projectFile = args.FirstOrDefault();
@@ -54,32 +36,23 @@ namespace Common.VersionIncrementer
             if (!File.Exists(projectFile))
                 throw new FileNotFoundException(message: null, fileName: projectFile);
 
-            if (!projectFile.EndsWith(".csproj"))
+            if (!(projectFile.EndsWith(".csproj") || projectFile.EndsWith(".props")))
                 throw new ArgumentException("Invalid project file");
 
-            var isSetChanged = args.Length > 1 && args[1] == "-setHasChanged";
-
-            return (projectFile, isSetChanged);
+            return projectFile;
 
         }
 
-        static string Hash(ref string text, string newValue = "")
-        {
-            if (!string.IsNullOrEmpty(newValue))
-                ChangeTagValue(ref text, out newValue, "Hash", h => newValue);
-            return newValue;
-        }
+        static void Increment(ref string text, out string newVersion) =>
+            ChangeTagValue(ref text, out newVersion, "Version", current => Version.Parse(current).BumpBuild().ToString());
 
-        static void Increment(ref string text, out Version newVersion) =>
-            ChangeTagValue(ref text, out newVersion, "Version", current => current.BumpBuild());
-
-        static void ChangeTagValue<T>(ref string text, out T newValue, string tag, Func<T, T> setValue)
+        static void ChangeTagValue(ref string text, out string newValue, string tag, Func<string, string> setValue)
         {
 
             newValue = default;
             if (GetTag(text, tag, out var value, out var fullValue))
             {
-                newValue = (T)Convert.ChangeType(setValue.Invoke((T)Convert.ChangeType(value, typeof(T))), typeof(T));
+                newValue = setValue.Invoke(value);
                 text = text.Replace(fullValue, $"<{tag}>{newValue}</{tag}>");
             }
 
@@ -90,9 +63,6 @@ namespace Common.VersionIncrementer
             GetTag(text, tag, out var value, out var _);
             return value;
         }
-
-        static bool GetTag(string text, string tag, out string value) =>
-            GetTag(text, tag, out value, out var _);
 
         static bool GetTag(string text, string tag, out string value, out string fullValue)
         {
@@ -120,11 +90,6 @@ namespace Common.VersionIncrementer
 
         public static Version BumpBuild(this Version version) =>
             new Version(version.Major, version.Minor, version.Build + 1);
-
-        public static string GetHash(string projectFile)
-        {
-
-        }
 
     }
 

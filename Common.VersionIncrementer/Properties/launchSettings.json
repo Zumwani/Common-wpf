@@ -2,7 +2,7 @@
   "profiles": {
     "Common.VersionIncrementer": {
       "commandName": "Project",
-      "commandLineArgs": "Common.Settings/Common.Settings.csproj"
+      "commandLineArgs": "P:\\Github\\Common-wpf\\Common.Settings\\Version.props"
     }
   }
 }

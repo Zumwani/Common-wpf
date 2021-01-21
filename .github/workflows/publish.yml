@@ -22,15 +22,11 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
 
-    - name: Increment version
-      run: D:\a\Common-wpf\Common-wpf\VersionIncrementer.exe Common.Settings/Common.Settings.csproj
-    - name: Increment version
-      run: D:\a\Common-wpf\Common-wpf\VersionIncrementer.exe Common.Utility/Common.Utility.csproj
-
     - name: Publish Common-wpf.Settings
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: Common.Settings/Common.Settings.csproj
+          VERSION_FILE_PATH: Common.Settings/Version.props
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           TAG_COMMIT: false
 
@@ -38,5 +34,6 @@ jobs:
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: Common.Utility/Common.Utility.csproj
+          VERSION_FILE_PATH: Common.Utility/Version.props
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           TAG_COMMIT: false
