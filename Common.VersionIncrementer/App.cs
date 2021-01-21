@@ -19,13 +19,13 @@ namespace Common.VersionIncrementer
             if (mode == Mode.Increment)
             {
                 Increment(ref versionText, out var version);
-                File.WriteAllText(version, versionText);
+                File.WriteAllText(versionFile, versionText);
                 Console.WriteLine(name + " version incremented to: " + version + ".");
             }
             else if (mode == Mode.Copy)
             {
                 var projectText = File.ReadAllText(projectFile);
-                CopyVersion(ref versionFile, ref projectText);
+                CopyVersion(ref versionText, ref projectText);
                 File.WriteAllText(projectFile, projectText);
                 Console.WriteLine(name + " project version updated.");
             }
