@@ -4,8 +4,7 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
-    <Version>1.0.3</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Authors>Common-wpf</Authors>
     <PackageId>Common-wpf.Utility</PackageId>
     <Product>Common-wpf.Utility</Product>

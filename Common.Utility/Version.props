@@ -1,2 +1,6 @@
-<Version>1.0.5</Version>
-<Product>Common.Utility</Product>
+<Project>
+  <PropertyGroup>
+    <Product>Common.Utility</Product>
+    <Version>1.0.5</Version>
+  </PropertyGroup>
+</Project>
