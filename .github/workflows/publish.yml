@@ -7,7 +7,6 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    allow-failure: true
 
     steps:
     - uses: actions/checkout@v2
@@ -30,6 +29,7 @@ jobs:
       run: ./VersionIncrementer.exe -copy Common.Utility/Common.Utility.csproj Common.Utility/Version.props
 
     - name: Publish Common-wpf.Settings
+      continue-on-error: true
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: Common.Settings/Common.Settings.csproj
@@ -38,6 +38,7 @@ jobs:
           TAG_COMMIT: false
 
     - name: Publish Common-wpf.Utility
+      continue-on-error: true
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: Common.Utility/Common.Utility.csproj
