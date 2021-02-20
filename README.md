@@ -63,7 +63,7 @@ public Window : System.Windows.Window
     private void Window_Loaded(..)
     {
 
-      //Center window if first time launching...
+      //Center window if first time launching, using Common.Utility...
       if (Settings.WindowLeft.Current.IsDefault)
           this.CenterHorizontally(SetLeft, screen);
 
