@@ -13,10 +13,10 @@ A settings system for wpf that allows easy access for both code behind and xaml,
 namespace Example.Settings
 {
 
-    public class WindowLeft : Setting<double?, WindowLeft>
+    public class WindowLeft : Setting<double, WindowLeft>
     { }
 
-    public class WindowTop : Setting<double?, WindowTop>
+    public class WindowTop : Setting<double, WindowTop>
     { }
 
     public class WindowWidth : Setting<double, WindowWidth>
