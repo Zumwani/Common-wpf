@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Threading;
@@ -47,6 +47,7 @@ namespace Common
         TSelf Setup()
         {
             value = Read();
+            SettingsUtility.Add(this);
             return (TSelf)this;
         }
 
@@ -77,9 +78,9 @@ namespace Common
         bool ISetting.Validate(object value) =>
             Convert.ChangeType(value, typeof(T)) is T t && Validate(t);
 
-        object ISetting.Value 
-        { 
-            get => value; 
+        object ISetting.Value
+        {
+            get => value;
             set => Value = (T)value;
         }
 
@@ -97,16 +98,17 @@ namespace Common
 
         void DoWrite()
         {
-            Debug.WriteLine("Write: " + Key);
+            //Debug.WriteLine("Write: " + Key);
             using var key = SettingsUtility.RegKey(writable: true);
-            key.SetValue(Key, Value);
+            var json = JsonSerializer.Serialize(Value);
+            key.SetValue(Key, json);
             WriteTimer.Stop();
         }
 
         /// <summary>Writes the value to registry.</summary>
         void Write()
         {
-            
+
             //We're in design mode, while we don't want to save values here, AssemblyName is wrong anyway (might only be when using vs hosting process?)
             if (DesignerProperties.GetIsInDesignMode(new DependencyObject()))
                 return;
@@ -122,12 +124,10 @@ namespace Common
         {
 
             using var key = SettingsUtility.RegKey();
-            var value = key?.GetValue(Key, DefaultValue);
+            var json = (string)key?.GetValue(Key, null);
 
-            if (Convert.ChangeType(value, typeof(T)) is T t)
-                return t;
-            else
-                return DefaultValue;
+            var obj = json is null ? default : JsonSerializer.Deserialize<T>(json);
+            return obj ?? DefaultValue;
 
         }
 
@@ -166,16 +166,16 @@ namespace Common
 
         private T value;
         /// <summary>The value of this setting.</summary>
-        public T Value 
-        { 
+        public T Value
+        {
             get => value;
-            set 
+            set
             {
                 Clamp(ref value);
                 if (Validate(Value) && !EqualityComparer<T>.Default.Equals(value, this.value))
                 {
                     this.value = value;
-                    OnPropertyChanged(); 
+                    OnPropertyChanged();
                 }
             }
         }
@@ -191,7 +191,7 @@ namespace Common
             DeleteValue();
         }
 
-        public static implicit operator T (Setting<T, TSelf> setting) =>
+        public static implicit operator T(Setting<T, TSelf> setting) =>
             setting.value;
 
     }
