@@ -86,5 +86,28 @@ public Window : System.Windows.Window
 ## Common.Utility
 Contains utility functions for wpf.
 
-> static class WindowUtility\
-Contains extension methods for centering windows and also a function to clamp window position to bounds of screen(s).
+```xml
+<Window ..
+  xmlns:common="http://common"
+  common:WindowExtensions.IsVisibleInAltTab="False">
+
+</Window>
+```
+```csharp
+public class Window : System.Windows.Window
+{
+
+    private void Window_Loaded(..)
+    {
+
+        //Center window on the screen that the window is currently on
+        this.Center();
+        this.CenterVertically();
+        this.CenterHorizontally();
+
+        //Restricts window from being moved offscreen (supports multiple monitors)
+        this.MakeSureVisible();
+
+    }
+
+```
