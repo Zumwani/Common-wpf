@@ -4,7 +4,10 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Markup;
 
+[assembly: XmlnsDefinition("http://common", "Common.Utility")]
+[assembly: XmlnsPrefix("http://common", "common")]
 namespace Common.Utility
 {
 
