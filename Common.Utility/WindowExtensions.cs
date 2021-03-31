@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Markup;
@@ -91,15 +92,15 @@ namespace Common.Utility
         public static void SetIsVisibleInAltTab(Window window, bool value) => window.SetValue(IsVisibleInAltTabProperty, value);
 
         public static readonly DependencyProperty IsVisibleInAltTabProperty =
-            DependencyProperty.RegisterAttached("IsVisibleInAltTab", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(false, IsVisibleInAltTabChanged));
+            DependencyProperty.RegisterAttached("IsVisibleInAltTab", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(true, IsVisibleInAltTabChanged));
 
-        static void IsVisibleInAltTabChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        static async void IsVisibleInAltTabChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
 
             if (sender is Window window)
             {
 
-                var handle = new WindowInteropHelper(window).EnsureHandle();
+                var handle = await GetHandle(window);
                 var exStyle = (ExtendedWindowStyles)GetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE);
 
                 if ((bool)e.NewValue)
@@ -110,6 +111,20 @@ namespace Common.Utility
                 SetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE, (IntPtr)exStyle);
 
             }
+
+        }
+
+        static async Task<IntPtr> GetHandle(Window window)
+        {
+
+            //During InitializeComponent() handle has not been created yet,
+            //and we cannot call WindowInteropHelper.EnsureHandle() since this prevents setting AllowTransparency.
+            //So we need to just wait until handle is created
+
+            var interop = new WindowInteropHelper(window);
+            while (interop.Handle == IntPtr.Zero)
+                await Task.Delay(100);
+            return interop.Handle;
 
         }
 
