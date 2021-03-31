@@ -1,14 +1,17 @@
-﻿using System;
+﻿using ShellUtility.Screens;
+using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using ShellUtility.Screens;
 
 namespace Common.Utility
 {
 
     public static class WindowExtensions
     {
+
+        #region Location
 
         /// <summary>Center the window on the users desktop.</summary>
         public static void Center(this Window window, Action<double> setLeft = null, Action<double> setTop = null, Screen screen = null)
@@ -52,7 +55,7 @@ namespace Common.Utility
                 return;
 
             setLeft ??= (value) => window.Left = value;
-            setTop  ??= (value) => window.Top = value;
+            setTop ??= (value) => window.Top = value;
 
             var pos = new System.Drawing.Rectangle((int)window.Left, (int)window.Top, (int)(window.Left + window.ActualWidth), (int)(window.Top + window.ActualHeight));
 
@@ -77,6 +80,57 @@ namespace Common.Utility
             }
 
         }
+
+        #endregion
+        #region Hide from alt-tab
+
+        public static bool GetIsVisibleInAltTab(Window window) => (bool)window.GetValue(IsVisibleInAltTabProperty);
+        public static void SetIsVisibleInAltTab(Window window, bool value) => window.SetValue(IsVisibleInAltTabProperty, value);
+
+        public static readonly DependencyProperty IsVisibleInAltTabProperty =
+            DependencyProperty.RegisterAttached("IsVisibleInAltTab", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(false, IsVisibleInAltTabChanged));
+
+        static void IsVisibleInAltTabChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        {
+
+            if (sender is Window window)
+            {
+
+                var handle = new WindowInteropHelper(window).EnsureHandle();
+                var exStyle = (ExtendedWindowStyles)GetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE);
+
+                if ((bool)e.NewValue)
+                    exStyle &= ~ExtendedWindowStyles.WS_EX_TOOLWINDOW;
+                else
+                    exStyle |= ExtendedWindowStyles.WS_EX_TOOLWINDOW;
+
+                SetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE, (IntPtr)exStyle);
+
+            }
+
+        }
+
+        [Flags]
+        enum ExtendedWindowStyles
+        {
+            WS_EX_TOOLWINDOW = 0x00000080,
+        }
+
+        enum GetWindowLongFields
+        {
+            GWL_EXSTYLE = (-20),
+        }
+
+        [DllImport("user32.dll")]
+        static extern IntPtr GetWindowLong(IntPtr hWnd, GetWindowLongFields nIndex);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr SetWindowLong(IntPtr hWnd, GetWindowLongFields nIndex, IntPtr dwNewLong);
+
+        [DllImport("kernel32.dll", EntryPoint = "SetLastError")]
+        static extern void SetLastError(int dwErrorCode);
+
+        #endregion
 
     }
 
