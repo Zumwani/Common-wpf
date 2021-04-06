@@ -126,8 +126,11 @@ namespace Common
             using var key = SettingsUtility.RegKey();
             var json = (string)key?.GetValue(Key, null);
 
-            var obj = json is null ? default : JsonSerializer.Deserialize<T>(json);
-            return obj ?? DefaultValue;
+            var obj = json is not null
+                ? JsonSerializer.Deserialize<T>(json)
+                : DefaultValue;
+
+            return obj;
 
         }
 
@@ -172,7 +175,7 @@ namespace Common
             set
             {
                 Clamp(ref value);
-                if (Validate(Value) && !EqualityComparer<T>.Default.Equals(value, this.value))
+                if (Validate(value) && !EqualityComparer<T>.Default.Equals(value, this.value))
                 {
                     this.value = value;
                     OnPropertyChanged();
