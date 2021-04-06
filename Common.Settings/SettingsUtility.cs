@@ -89,7 +89,7 @@ namespace Common
         public static void EnsureWritten()
         {
             foreach (var setting in InitializedSettings)
-                if (setting.WriteTimer.IsEnabled)
+                if (setting?.WriteTimer?.IsEnabled ?? false)
                 {
                     setting.WriteTimer.Stop();
                     setting.DoWrite();
