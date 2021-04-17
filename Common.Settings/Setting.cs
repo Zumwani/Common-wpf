@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -54,11 +55,23 @@ namespace Common
         /// <summary>Occurs when Value changes.</summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
-        void OnPropertyChanged(bool write = true, [CallerMemberName] string name = "")
+        void OnPropertyChanged(T prevValue, bool write = true, [CallerMemberName] string name = "")
         {
+
             if (write)
                 Write();
+
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+            if (prevValue is INotifyCollectionChanged c)
+                c.CollectionChanged -= CollectionChanged;
+
+            if (value is INotifyCollectionChanged newC)
+                newC.CollectionChanged += CollectionChanged;
+
+            void CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) =>
+                Write();
+
         }
 
         #endregion
@@ -103,6 +116,16 @@ namespace Common
             var json = JsonSerializer.Serialize(Value);
             key.SetValue(Key, json);
             WriteTimer.Stop();
+        }
+
+        /// <summary>Saves this setting to registry.</summary>
+        /// <param name="queue">Use queue, true means actual write will be delayed, use this when value can change repeatedly within a short timespan. False will write immediately.</param>
+        public void Save(bool queue = true)
+        {
+            if (queue)
+                Write();
+            else
+                DoWrite();
         }
 
         /// <summary>Writes the value to registry.</summary>
@@ -177,8 +200,9 @@ namespace Common
                 Clamp(ref value);
                 if (Validate(value) && !EqualityComparer<T>.Default.Equals(value, this.value))
                 {
+                    var v = this.value;
                     this.value = value;
-                    OnPropertyChanged();
+                    OnPropertyChanged(v);
                 }
             }
         }
@@ -189,8 +213,9 @@ namespace Common
         /// <summary>Resets value to default, this deletes value from registry until new value is set.</summary>
         public void Reset()
         {
+            var v = value;
             value = DefaultValue;
-            OnPropertyChanged(write: false);
+            OnPropertyChanged(v, write: false);
             DeleteValue();
         }
 
