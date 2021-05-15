@@ -18,6 +18,9 @@ namespace Common.Utility
 
         #region Events
 
+        public static void AddStateChangedHandler(FrameworkElement sender, RoutedEventHandler e) => sender?.AddHandler(StateChangedEvent, e);
+        public static void RemoveStateChangedHandler(FrameworkElement sender, RoutedEventHandler e) => sender?.RemoveHandler(StateChangedEvent, e);
+
         public static void AddLeftClickStartHandler(FrameworkElement sender, RoutedEventHandler e) => sender?.AddHandler(LeftClickStartEvent, e);
         public static void AddRightClickStartHandler(FrameworkElement sender, RoutedEventHandler e) => sender?.AddHandler(RightClickStartEvent, e);
         public static void RemoveLeftClickStartHandler(FrameworkElement sender, RoutedEventHandler e) => sender?.RemoveHandler(LeftClickStartEvent, e);
@@ -27,6 +30,9 @@ namespace Common.Utility
         public static void AddRightClickHandler(FrameworkElement sender, RoutedEventHandler e) => sender?.AddHandler(RightClickEvent, e);
         public static void RemoveLeftClickHandler(FrameworkElement sender, RoutedEventHandler e) => sender?.RemoveHandler(LeftClickEvent, e);
         public static void RemoveRightClickHandler(FrameworkElement sender, RoutedEventHandler e) => sender?.RemoveHandler(RightClickEvent, e);
+
+        public static readonly RoutedEvent StateChangedEvent = EventManager.RegisterRoutedEvent(
+            "StateChanged", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(VisualStateUtility));
 
         public static readonly RoutedEvent LeftClickEvent = EventManager.RegisterRoutedEvent(
             "LeftClick", RoutingStrategy.Direct, typeof(RoutedEventHandler), typeof(VisualStateUtility));
@@ -105,7 +111,6 @@ namespace Common.Utility
             if (sender is not FrameworkElement element)
                 return;
 
-            element.Unloaded -= Element_Unloaded;
             element.MouseEnter -= Element_MouseEnter;
             element.MouseLeave -= Element_MouseLeave;
             element.PreviewMouseLeftButtonDown -= Element_PreviewMouseLeftButtonDown;
@@ -115,7 +120,6 @@ namespace Common.Utility
 
             if ((bool)e.NewValue)
             {
-                element.Unloaded += Element_Unloaded;
                 element.MouseEnter += Element_MouseEnter;
                 element.MouseLeave += Element_MouseLeave;
                 element.PreviewMouseLeftButtonDown += Element_PreviewMouseLeftButtonDown;
@@ -161,13 +165,13 @@ namespace Common.Utility
         static void Element_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (sender is FrameworkElement element)
-                UpdateVisualState(element, isPressed: true, isRight: true);
+                UpdateVisualState(element, isRight: true, isPressed: true);
         }
 
         static void Element_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (sender is FrameworkElement element)
-                UpdateVisualState(element, isPressed: false, isRight: true);
+                UpdateVisualState(element, isRight: true, isPressed: false);
         }
 
         #endregion
@@ -236,6 +240,7 @@ namespace Common.Utility
             blockedEvents.TryGetValue(element, out var l) && l.Any(h => h.Event == e);
 
         #endregion
+        #region State switching
 
         static void UpdateVisualState(FrameworkElement element, bool? isMouseOver = null, bool? isPressed = null, bool? isRight = null, bool isContextMenuClose = false)
         {
@@ -252,13 +257,15 @@ namespace Common.Utility
             var animateClick = !(isRight ?? false) || (GetAnimateRightClick(element) ?? element.ContextMenu is not null);
 
             var state = VisualState.Normal;
-            if (isMouseOver.Value)
+            if (isMouseOver ?? false)
                 state = VisualState.Hover;
             if (isPressed ?? false && animateClick)
                 state = VisualState.Click;
 
             var prevState = GetVisualState(element);
+
             SetVisualState(element, state);
+            RaiseEvent(StateChangedEvent, element);
 
             if (isPressed.HasValue && !isContextMenuClose)
                 RaiseClickEvents(element, isRight ?? false, isUp: prevState == VisualState.Click);
@@ -279,14 +286,14 @@ namespace Common.Utility
             {
 
                 if (!isUp)
-                    RaiseEvent(LeftClickStartEvent);
+                    RaiseEvent(LeftClickStartEvent, element);
                 else
                 {
 
                     if (GetShowContextMenuOnLeftClick(element))
                         element.ContextMenu?.SetValue(ContextMenu.IsOpenProperty, true);
 
-                    if (RaiseEvent(LeftClickEvent))
+                    if (RaiseEvent(LeftClickEvent, element))
                         InvokeCommand(LeftClickCommandProperty.Name);
 
                 }
@@ -295,8 +302,8 @@ namespace Common.Utility
             else if (isRight)
             {
                 if (!isUp)
-                    RaiseEvent(RightClickStartEvent);
-                else if (RaiseEvent(RightClickEvent))
+                    RaiseEvent(RightClickStartEvent, element);
+                else if (RaiseEvent(RightClickEvent, element))
                     InvokeCommand(RightClickCommandProperty.Name);
             }
 
@@ -308,17 +315,17 @@ namespace Common.Utility
                     command.Execute(parameter);
             }
 
-            bool RaiseEvent(RoutedEvent @event)
-            {
+        }
 
-                if (IsBlocked(element, @event))
-                    return false;
+        static bool RaiseEvent(RoutedEvent @event, FrameworkElement element)
+        {
 
-                var e = new RoutedEventArgs(@event, element);
-                element.RaiseEvent(e);
-                return !e.Handled;
+            if (IsBlocked(element, @event))
+                return false;
 
-            }
+            var e = new RoutedEventArgs(@event, element);
+            element.RaiseEvent(e);
+            return !e.Handled;
 
         }
 
@@ -327,6 +334,8 @@ namespace Common.Utility
             if (sender is FrameworkElement element)
                 SetIsEnabled(element, false);
         }
+
+        #endregion
 
     }
 

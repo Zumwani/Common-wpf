@@ -16,6 +16,57 @@ namespace Common.Utility
     public static class WindowExtensions
     {
 
+        #region Is resizing
+
+        public static bool? GetIsResizing(DependencyObject obj) => (bool?)obj.GetValue(IsResizingProperty);
+        public static void SetIsResizing(DependencyObject obj, bool? value) => obj.SetValue(IsResizingProperty, value);
+
+        public static readonly DependencyProperty IsResizingProperty =
+            DependencyProperty.RegisterAttached("IsResizing", typeof(bool?), typeof(WindowExtensions), new PropertyMetadata(null, OnIsResizingChanged));
+
+        static readonly Dictionary<IntPtr, Window> resizeWindows = new();
+
+        static void OnIsResizingChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        {
+
+            if (sender is not Window window)
+                return;
+
+            var handle = new WindowInteropHelper(window).EnsureHandle();
+            var source = HwndSource.FromHwnd(handle);
+
+            window.Unloaded -= Window_Unloaded;
+            source.RemoveHook(WndProc_IsResizing);
+            resizeWindows.Remove(handle);
+
+            if (((bool?)e.NewValue).HasValue)
+            {
+                window.Unloaded += Window_Unloaded;
+                source.AddHook(WndProc_IsResizing);
+                resizeWindows.Add(handle, window);
+            }
+
+            static void Window_Unloaded(object sender, RoutedEventArgs e)
+            {
+                if (sender is Window window)
+                    SetIsResizing(window, null);
+            }
+
+        }
+
+        static IntPtr WndProc_IsResizing(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+
+            if (msg == (int)WindowsMessage.WM_ENTERSIZEMOVE)
+                SetIsResizing(resizeWindows[hwnd], true);
+            else if (msg == (int)WindowsMessage.WM_EXITSIZEMOVE)
+                SetIsResizing(resizeWindows[hwnd], false);
+
+            return IntPtr.Zero;
+
+        }
+
+        #endregion
         #region Clamp to screens
 
         public static bool GetClampToMonitors(DependencyObject obj) => (bool)obj.GetValue(ClampToMonitorsProperty);
@@ -24,7 +75,7 @@ namespace Common.Utility
         public static readonly DependencyProperty ClampToMonitorsProperty =
             DependencyProperty.RegisterAttached("ClampToMonitors", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(default(bool), OnClampToMonitorsChanged));
 
-        static readonly Dictionary<IntPtr, Window> windows = new();
+        static readonly Dictionary<IntPtr, Window> clampedWindows = new();
         static void OnClampToMonitorsChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
 
@@ -34,19 +85,27 @@ namespace Common.Utility
             var handle = new WindowInteropHelper(window).EnsureHandle();
             var source = HwndSource.FromHwnd(handle);
 
-            windows.Remove(handle);
-            source.RemoveHook(WndProc);
+            clampedWindows.Remove(handle);
+            source.RemoveHook(WndProc_ClampToMonitors);
+            window.Unloaded -= Window_Unloaded;
 
             if ((bool)e.NewValue)
             {
-                windows.Add(handle, window);
-                source.AddHook(WndProc);
+                window.Unloaded += Window_Unloaded;
+                clampedWindows.Add(handle, window);
+                source.AddHook(WndProc_ClampToMonitors);
+            }
+
+            static void Window_Unloaded(object sender, RoutedEventArgs e)
+            {
+                if (sender is Window window)
+                    SetClampToMonitors(window, false);
             }
 
         }
 
         static POINT? relativeMousePos;
-        static IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        static IntPtr WndProc_ClampToMonitors(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
 
             if (msg == (int)WindowsMessage.WM_EXITSIZEMOVE)
