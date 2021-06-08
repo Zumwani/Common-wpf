@@ -26,7 +26,7 @@ namespace Common
         DispatcherTimer WriteTimer { get; }
     }
 
-    /// <summary>Represents a setting in an app. Notifies when value changes (in current process only). Values are saved to registry.</summary>
+    /// <summary>Represents a setting in an app. Notifies and saves when value changes (in current process only). Values are saved to registry.</summary>
     /// <typeparam name="T">The type of value to store in this setting.</typeparam>
     /// <typeparam name="TSelf">Used for singleton, pass the type of the subclass. See <see cref="Current"/>.</typeparam>
     public abstract class Setting<T, TSelf> : Binding, ISetting, INotifyPropertyChanged where TSelf : Setting<T, TSelf>, new()
@@ -122,7 +122,7 @@ namespace Common
         {
             //Debug.WriteLine("Write: " + Key);
             using var key = SettingsUtility.RegKey(writable: true);
-            var json = JsonSerializer.Serialize(Value);
+            var json = Serialize(value);
             key.SetValue(Key, json);
             WriteTimer.Stop();
         }
@@ -158,9 +158,7 @@ namespace Common
             using var key = SettingsUtility.RegKey();
             var json = (string)key?.GetValue(Key, null);
 
-            var obj = json is not null
-                ? JsonSerializer.Deserialize<T>(json)
-                : DefaultValue;
+            var obj = Deserialize(json);
 
             return obj;
 
@@ -176,6 +174,16 @@ namespace Common
         /// <summary>Refreshes the value from the registry.</summary>
         public void Refresh() =>
             Value = Read();
+
+        /// <summary>Overrides default serialization.</summary>
+        protected virtual string Serialize(T value) =>
+            JsonSerializer.Serialize(Value);
+
+        /// <summary>Overrides default deserialization.</summary>
+        protected virtual T Deserialize(string json) =>
+            json is not null
+            ? JsonSerializer.Deserialize<T>(json)
+            : DefaultValue;
 
         #endregion
         #region Validation
