@@ -49,11 +49,20 @@ namespace Common
         {
             value = Read();
             SettingsUtility.Add(this);
+            OnSetup();
             return (TSelf)this;
         }
 
         /// <summary>Occurs when Value changes.</summary>
         public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>Called on Current when setup is done.</summary>
+        protected virtual void OnSetup()
+        { }
+
+        /// <summary>Called when value has changed.</summary>
+        protected virtual void OnValueChanged()
+        { }
 
         void OnPropertyChanged(T prevValue, bool write = true, [CallerMemberName] string name = "")
         {
@@ -203,6 +212,7 @@ namespace Common
                     var v = this.value;
                     this.value = value;
                     OnPropertyChanged(v);
+                    OnValueChanged();
                 }
             }
         }
