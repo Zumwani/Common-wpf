@@ -48,6 +48,7 @@ namespace Common
         TSelf Setup()
         {
             value = Read();
+            OnAfterLoad();
             SettingsUtility.Add(this);
             OnSetup();
             return (TSelf)this;
@@ -121,6 +122,7 @@ namespace Common
         void DoWrite()
         {
             //Debug.WriteLine("Write: " + Key);
+            OnBeforeSave();
             using var key = SettingsUtility.RegKey(writable: true);
             var json = Serialize(value);
             key.SetValue(Key, json);
@@ -172,8 +174,11 @@ namespace Common
         }
 
         /// <summary>Refreshes the value from the registry.</summary>
-        public void Refresh() =>
+        public void Refresh()
+        {
             Value = Read();
+            OnAfterLoad();
+        }
 
         /// <summary>Overrides default serialization.</summary>
         protected virtual string Serialize(T value) =>
@@ -197,6 +202,12 @@ namespace Common
             true;
 
         #endregion
+
+        protected virtual void OnBeforeSave()
+        { }
+
+        protected virtual void OnAfterLoad()
+        { }
 
         /// <summary>The key of this setting. This is <see cref="Type.FullName"/> of this setting.</summary>
         public string Key => GetType().FullName;
