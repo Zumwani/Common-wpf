@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Markup;
@@ -69,8 +68,14 @@ namespace Common.Utility
         #endregion
         #region Clamp to screens
 
+        public static bool GetUseWorkAreaForMonitorClamping(DependencyObject obj) => (bool)obj.GetValue(UseWorkAreaForMonitorClampingProperty);
+        public static void SetUseWorkAreaForMonitorClamping(DependencyObject obj, bool value) => obj.SetValue(UseWorkAreaForMonitorClampingProperty, value);
+
         public static bool GetClampToMonitors(DependencyObject obj) => (bool)obj.GetValue(ClampToMonitorsProperty);
         public static void SetClampToMonitors(DependencyObject obj, bool value) => obj.SetValue(ClampToMonitorsProperty, value);
+
+        public static readonly DependencyProperty UseWorkAreaForMonitorClampingProperty =
+            DependencyProperty.RegisterAttached("UseWorkAreaForMonitorClamping", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(false));
 
         public static readonly DependencyProperty ClampToMonitorsProperty =
             DependencyProperty.RegisterAttached("ClampToMonitors", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(default(bool), OnClampToMonitorsChanged));
@@ -82,25 +87,50 @@ namespace Common.Utility
             if (sender is not Window window)
                 return;
 
+            window.Unloaded -= Window_Unloaded;
+            window.Loaded -= UpdateClamp;
+            window.LocationChanged -= UpdateClamp;
+            window.SizeChanged -= UpdateClamp;
+
             var handle = new WindowInteropHelper(window).EnsureHandle();
             var source = HwndSource.FromHwnd(handle);
-
-            clampedWindows.Remove(handle);
             source.RemoveHook(WndProc_ClampToMonitors);
-            window.Unloaded -= Window_Unloaded;
+            _ = clampedWindows.Remove(handle);
 
             if ((bool)e.NewValue)
             {
                 window.Unloaded += Window_Unloaded;
+                window.LocationChanged += UpdateClamp;
+                window.SizeChanged += UpdateClamp;
+                window.Loaded += UpdateClamp;
                 clampedWindows.Add(handle, window);
                 source.AddHook(WndProc_ClampToMonitors);
+                EnsureClamped(window);
             }
 
-            static void Window_Unloaded(object sender, RoutedEventArgs e)
+            void Window_Unloaded(object sender, RoutedEventArgs e) =>
+                SetClampToMonitors(window, false);
+
+            void UpdateClamp(object sender, EventArgs e)
             {
-                if (sender is Window window)
-                    SetClampToMonitors(window, false);
+                if (window.IsLoaded)
+                    EnsureClamped(window);
             }
+
+        }
+
+        /// <summary>Clamps the window to screen if needed.</summary>
+        public static void EnsureClamped(this Window window)
+        {
+
+            var screen = Screen.FromWindowHandle(new WindowInteropHelper(window).Handle);
+            var rect = GetUseWorkAreaForMonitorClamping(window) ? screen.WorkArea : screen.Bounds;
+
+            //TODO: Does this override bindings?
+            if (window.Left < rect.Left) window.Left = rect.Left;
+            if (window.Top < rect.Top) window.Top = rect.Top;
+            if (window.Left + window.ActualWidth > rect.Right) window.Width = rect.Right - window.Left;
+            if (window.Top + window.ActualHeight > rect.Bottom) window.Height = rect.Bottom - window.Top;
 
         }
 
@@ -121,8 +151,13 @@ namespace Common.Utility
                 var screen = Screen.FromWindowHandle(hwnd);
                 ClampToScreen(screen, ref handled);
 
+                if (handled)
+                    Marshal.StructureToPtr(rect, lParam, true);
+
                 void ClampToScreen(Screen screen, ref bool handled)
                 {
+
+                    var bounds = GetUseWorkAreaForMonitorClamping(clampedWindows[hwnd]) ? screen.WorkArea : screen.Bounds;
 
                     var width = rect.Right - rect.Left;
                     var height = rect.Bottom - rect.Top;
@@ -131,16 +166,16 @@ namespace Common.Utility
                     preferredRect.Right = preferredRect.Left + width;
                     preferredRect.Bottom = preferredRect.Top + height;
 
-                    var isLeft = rect.Left < screen.Bounds.Left + relativeMousePos.Value.X;
-                    var isRight = rect.Right > screen.Bounds.Right - relativeMousePos.Value.X;
-                    var isTop = rect.Top < screen.Bounds.Top + relativeMousePos.Value.Y;
-                    var isBottom = rect.Bottom > screen.Bounds.Bottom - relativeMousePos.Value.X;
+                    var isLeft = rect.Left < bounds.Left + relativeMousePos.Value.X;
+                    var isRight = rect.Right > bounds.Right - relativeMousePos.Value.X;
+                    var isTop = rect.Top < bounds.Top + relativeMousePos.Value.Y;
+                    var isBottom = rect.Bottom > bounds.Bottom - relativeMousePos.Value.X;
 
                     if (isLeft || isRight || isTop || isBottom)
                     {
 
-                        rect.Left = Math.Clamp(preferredRect.Left, screen.Bounds.Left, screen.Bounds.Right - width);
-                        rect.Top = Math.Clamp(preferredRect.Top, screen.Bounds.Top, screen.Bounds.Bottom - height);
+                        rect.Left = Math.Clamp(preferredRect.Left, bounds.Left, bounds.Right - width);
+                        rect.Top = Math.Clamp(preferredRect.Top, bounds.Top, bounds.Bottom - height);
 
                         rect.Right = rect.Left + width;
                         rect.Bottom = rect.Top + height;
@@ -154,14 +189,76 @@ namespace Common.Utility
 
                 }
 
+            }
+            else if (msg == (int)WindowsMessage.WM_SIZING)
+            {
+
+                _ = GetCursorPos(out var absoluteMousePos);
+                var rect = Marshal.PtrToStructure<WIN32Rectangle>(lParam);
+                if (!relativeMousePos.HasValue)
+                    relativeMousePos = new POINT(absoluteMousePos.X - rect.Left, absoluteMousePos.Y - rect.Top);
+
+                var screen = Screen.FromWindowHandle(hwnd);
+                ClampToScreen(screen, ref handled);
+
                 if (handled)
                     Marshal.StructureToPtr(rect, lParam, true);
+
+                void ClampToScreen(Screen screen, ref bool handled)
+                {
+
+                    var bounds = GetUseWorkAreaForMonitorClamping(clampedWindows[hwnd]) ? screen.WorkArea : screen.Bounds;
+
+                    var width = rect.Right - rect.Left;
+                    var height = rect.Bottom - rect.Top;
+
+                    var preferredRect = new WIN32Rectangle() { Left = absoluteMousePos.X - relativeMousePos.Value.X, Top = absoluteMousePos.Y - relativeMousePos.Value.Y };
+                    preferredRect.Right = preferredRect.Left + width;
+                    preferredRect.Bottom = preferredRect.Top + height;
+
+                    var isLeft = ((WindowEdge)wParam).IsLeft() && rect.Left < bounds.Left + relativeMousePos.Value.X;
+                    var isRight = ((WindowEdge)wParam).IsRight() && rect.Right > bounds.Right - relativeMousePos.Value.X;
+                    var isTop = ((WindowEdge)wParam).IsTop() && rect.Top < bounds.Top + relativeMousePos.Value.Y;
+                    var isBottom = ((WindowEdge)wParam).IsBottom() && rect.Bottom > bounds.Bottom - relativeMousePos.Value.X;
+
+                    if (isLeft || isRight || isTop || isBottom)
+                    {
+
+                        if (isLeft && rect.Left < bounds.Left)
+                            rect.Left = bounds.Left;
+
+                        if (isTop && rect.Top < bounds.Top)
+                            rect.Top = bounds.Top;
+
+                        if (isRight && rect.Right > bounds.Right)
+                            rect.Right = bounds.Right;
+
+                        if (isBottom && rect.Bottom > bounds.Bottom)
+                            rect.Bottom = bounds.Bottom;
+
+                        handled = true;
+
+                    }
+
+                }
 
             }
 
             return IntPtr.Zero;
 
         }
+
+        static bool IsLeft(this WindowEdge edge) =>
+            edge is WindowEdge.WMSZ_LEFT or WindowEdge.WMSZ_TOPLEFT or WindowEdge.WMSZ_BOTTOMLEFT;
+
+        static bool IsTop(this WindowEdge edge) =>
+            edge is WindowEdge.WMSZ_TOP or WindowEdge.WMSZ_TOPLEFT or WindowEdge.WMSZ_TOPRIGHT;
+
+        static bool IsRight(this WindowEdge edge) =>
+            edge is WindowEdge.WMSZ_RIGHT or WindowEdge.WMSZ_TOPRIGHT or WindowEdge.WMSZ_BOTTOMRIGHT;
+
+        static bool IsBottom(this WindowEdge edge) =>
+            edge is WindowEdge.WMSZ_BOTTOM or WindowEdge.WMSZ_BOTTOMLEFT or WindowEdge.WMSZ_BOTTOMRIGHT;
 
         [StructLayout(LayoutKind.Sequential)]
         public struct WIN32Rectangle
@@ -237,7 +334,20 @@ namespace Common.Utility
             /// wParam parameter of the message specifies the SC_MOVE or SC_SIZE value. The operation is
             /// complete when DefWindowProc returns.
             /// </summary>
-            WM_EXITSIZEMOVE = 0x0232
+            WM_EXITSIZEMOVE = 0x0232,
+            WM_SIZING = 0x0214
+        }
+
+        public enum WindowEdge
+        {
+            WMSZ_BOTTOM = 6,
+            WMSZ_BOTTOMLEFT = 7,
+            WMSZ_BOTTOMRIGHT = 8,
+            WMSZ_LEFT = 1,
+            WMSZ_RIGHT = 2,
+            WMSZ_TOP = 3,
+            WMSZ_TOPLEFT = 4,
+            WMSZ_TOPRIGHT = 5,
         }
 
         #endregion
@@ -286,37 +396,32 @@ namespace Common.Utility
         public static readonly DependencyProperty IsVisibleInAltTabProperty =
             DependencyProperty.RegisterAttached("IsVisibleInAltTab", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(true, IsVisibleInAltTabChanged));
 
-        static async void IsVisibleInAltTabChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        static void IsVisibleInAltTabChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
 
             if (sender is Window window)
             {
 
-                var handle = await GetHandle(window);
-                var exStyle = (ExtendedWindowStyles)GetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE);
+                window.Loaded += Window_Loaded;
 
-                if ((bool)e.NewValue)
-                    exStyle &= ~ExtendedWindowStyles.WS_EX_TOOLWINDOW;
-                else
-                    exStyle |= ExtendedWindowStyles.WS_EX_TOOLWINDOW;
+                void Window_Loaded(object _, RoutedEventArgs _1)
+                {
 
-                SetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE, (IntPtr)exStyle);
+                    window.Loaded -= Window_Loaded;
+
+                    var handle = new WindowInteropHelper(window).Handle;
+                    var exStyle = (ExtendedWindowStyles)GetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE);
+
+                    if ((bool)e.NewValue)
+                        exStyle &= ~ExtendedWindowStyles.WS_EX_TOOLWINDOW;
+                    else
+                        exStyle |= ExtendedWindowStyles.WS_EX_TOOLWINDOW;
+
+                    SetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE, (IntPtr)exStyle);
+
+                }
 
             }
-
-        }
-
-        static async Task<IntPtr> GetHandle(Window window)
-        {
-
-            //During InitializeComponent() handle has not been created yet,
-            //and we cannot call WindowInteropHelper.EnsureHandle() since this prevents setting AllowTransparency.
-            //So we need to just wait until handle is created
-
-            var interop = new WindowInteropHelper(window);
-            while (interop.Handle == IntPtr.Zero)
-                await Task.Delay(100);
-            return interop.Handle;
 
         }
 
