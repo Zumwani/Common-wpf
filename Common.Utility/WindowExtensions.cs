@@ -12,73 +12,36 @@ using System.Windows.Markup;
 namespace Common.Utility
 {
 
+    public enum ClampToScreenOption
+    {
+        None, Screen, WorkArea
+    }
+
     public static class WindowExtensions
     {
 
         #region Is resizing
 
-        public static bool? GetIsResizing(DependencyObject obj) => (bool?)obj.GetValue(IsResizingProperty);
-        public static void SetIsResizing(DependencyObject obj, bool? value) => obj.SetValue(IsResizingProperty, value);
+        public static bool GetIsResizing(DependencyObject obj) => (bool)obj.GetValue(IsResizingProperty);
+        public static void SetIsResizing(DependencyObject obj, bool value) => obj.SetValue(IsResizingProperty, value);
+
+        public static bool GetIsMoving(DependencyObject obj) => (bool)obj.GetValue(IsMovingProperty);
+        public static void SetIsMoving(DependencyObject obj, bool value) => obj.SetValue(IsMovingProperty, value);
 
         public static readonly DependencyProperty IsResizingProperty =
-            DependencyProperty.RegisterAttached("IsResizing", typeof(bool?), typeof(WindowExtensions), new PropertyMetadata(null, OnIsResizingChanged));
+            DependencyProperty.RegisterAttached("IsResizing", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(null));
 
-        static readonly Dictionary<IntPtr, Window> resizeWindows = new();
-
-        static void OnIsResizingChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
-        {
-
-            if (sender is not Window window)
-                return;
-
-            var handle = new WindowInteropHelper(window).EnsureHandle();
-            var source = HwndSource.FromHwnd(handle);
-
-            window.Unloaded -= Window_Unloaded;
-            source.RemoveHook(WndProc_IsResizing);
-            resizeWindows.Remove(handle);
-
-            if (((bool?)e.NewValue).HasValue)
-            {
-                window.Unloaded += Window_Unloaded;
-                source.AddHook(WndProc_IsResizing);
-                resizeWindows.Add(handle, window);
-            }
-
-            static void Window_Unloaded(object sender, RoutedEventArgs e)
-            {
-                if (sender is Window window)
-                    SetIsResizing(window, null);
-            }
-
-        }
-
-        static IntPtr WndProc_IsResizing(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-
-            if (msg == (int)WindowsMessage.WM_ENTERSIZEMOVE)
-                SetIsResizing(resizeWindows[hwnd], true);
-            else if (msg == (int)WindowsMessage.WM_EXITSIZEMOVE)
-                SetIsResizing(resizeWindows[hwnd], false);
-
-            return IntPtr.Zero;
-
-        }
+        public static readonly DependencyProperty IsMovingProperty =
+            DependencyProperty.RegisterAttached("IsMoving", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(false));
 
         #endregion
         #region Clamp to screens
 
-        public static bool GetUseWorkAreaForMonitorClamping(DependencyObject obj) => (bool)obj.GetValue(UseWorkAreaForMonitorClampingProperty);
-        public static void SetUseWorkAreaForMonitorClamping(DependencyObject obj, bool value) => obj.SetValue(UseWorkAreaForMonitorClampingProperty, value);
-
-        public static bool GetClampToMonitors(DependencyObject obj) => (bool)obj.GetValue(ClampToMonitorsProperty);
-        public static void SetClampToMonitors(DependencyObject obj, bool value) => obj.SetValue(ClampToMonitorsProperty, value);
-
-        public static readonly DependencyProperty UseWorkAreaForMonitorClampingProperty =
-            DependencyProperty.RegisterAttached("UseWorkAreaForMonitorClamping", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(false));
+        public static ClampToScreenOption GetClampToMonitors(DependencyObject obj) => (ClampToScreenOption)obj.GetValue(ClampToMonitorsProperty);
+        public static void SetClampToMonitors(DependencyObject obj, ClampToScreenOption value) => obj.SetValue(ClampToMonitorsProperty, value);
 
         public static readonly DependencyProperty ClampToMonitorsProperty =
-            DependencyProperty.RegisterAttached("ClampToMonitors", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(default(bool), OnClampToMonitorsChanged));
+            DependencyProperty.RegisterAttached("ClampToMonitors", typeof(ClampToScreenOption), typeof(WindowExtensions), new PropertyMetadata(ClampToScreenOption.None, OnClampToMonitorsChanged));
 
         static readonly Dictionary<IntPtr, Window> clampedWindows = new();
         static void OnClampToMonitorsChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -92,12 +55,18 @@ namespace Common.Utility
             window.LocationChanged -= UpdateClamp;
             window.SizeChanged -= UpdateClamp;
 
+            if (!window.IsLoaded && clampedWindows.ContainsValue(window))
+            {
+                _ = clampedWindows.Remove(clampedWindows.FirstOrDefault(kvp => kvp.Value == window).Key);
+                return;
+            }
+
             var handle = new WindowInteropHelper(window).EnsureHandle();
             var source = HwndSource.FromHwnd(handle);
             source.RemoveHook(WndProc_ClampToMonitors);
             _ = clampedWindows.Remove(handle);
 
-            if ((bool)e.NewValue)
+            if ((ClampToScreenOption)e.NewValue != ClampToScreenOption.None)
             {
                 window.Unloaded += Window_Unloaded;
                 window.LocationChanged += UpdateClamp;
@@ -109,7 +78,7 @@ namespace Common.Utility
             }
 
             void Window_Unloaded(object sender, RoutedEventArgs e) =>
-                SetClampToMonitors(window, false);
+                SetClampToMonitors(window, ClampToScreenOption.None);
 
             void UpdateClamp(object sender, EventArgs e)
             {
@@ -120,11 +89,24 @@ namespace Common.Utility
         }
 
         /// <summary>Clamps the window to screen if needed.</summary>
-        public static void EnsureClamped(this Window window)
+        /// <param name="clampTo">
+        /// <para>Specifies what to clamp to.</para>
+        /// <para><see langword="null"/> will use <see cref="ClampToMonitorsProperty"/> for <paramref name="window"/>.</para>
+        /// <para>If <see cref="ClampToScreenOption.None"/> is specified then this method will have no effect.</para>
+        /// </param>
+        public static void EnsureClamped(this Window window, ClampToScreenOption? clampTo = null)
         {
 
+            if (GetIsMoving(window) || GetIsResizing(window))
+                return;
+
+            clampTo ??= GetClampToMonitors(window);
+
+            if (clampTo == ClampToScreenOption.None)
+                return;
+
             var screen = Screen.FromWindowHandle(new WindowInteropHelper(window).Handle);
-            var rect = GetUseWorkAreaForMonitorClamping(window) ? screen.WorkArea : screen.Bounds;
+            var rect = clampTo == ClampToScreenOption.WorkArea ? screen.WorkArea : screen.Bounds;
 
             //TODO: Does this override bindings?
             if (window.Left < rect.Left) window.Left = rect.Left;
@@ -139,9 +121,15 @@ namespace Common.Utility
         {
 
             if (msg == (int)WindowsMessage.WM_EXITSIZEMOVE)
+            {
                 relativeMousePos = null;
+                SetIsMoving(clampedWindows[hwnd], false);
+                SetIsResizing(clampedWindows[hwnd], false);
+            }
             else if (msg == (int)WindowsMessage.WM_MOVING)
             {
+
+                SetIsMoving(clampedWindows[hwnd], true);
 
                 _ = GetCursorPos(out var absoluteMousePos);
                 var rect = Marshal.PtrToStructure<WIN32Rectangle>(lParam);
@@ -157,7 +145,9 @@ namespace Common.Utility
                 void ClampToScreen(Screen screen, ref bool handled)
                 {
 
-                    var bounds = GetUseWorkAreaForMonitorClamping(clampedWindows[hwnd]) ? screen.WorkArea : screen.Bounds;
+                    var bounds = GetClampToMonitors(clampedWindows[hwnd]) == ClampToScreenOption.WorkArea
+                        ? screen.WorkArea
+                        : screen.Bounds;
 
                     var width = rect.Right - rect.Left;
                     var height = rect.Bottom - rect.Top;
@@ -193,6 +183,8 @@ namespace Common.Utility
             else if (msg == (int)WindowsMessage.WM_SIZING)
             {
 
+                SetIsResizing(clampedWindows[hwnd], true);
+
                 _ = GetCursorPos(out var absoluteMousePos);
                 var rect = Marshal.PtrToStructure<WIN32Rectangle>(lParam);
                 if (!relativeMousePos.HasValue)
@@ -207,7 +199,9 @@ namespace Common.Utility
                 void ClampToScreen(Screen screen, ref bool handled)
                 {
 
-                    var bounds = GetUseWorkAreaForMonitorClamping(clampedWindows[hwnd]) ? screen.WorkArea : screen.Bounds;
+                    var bounds = GetClampToMonitors(clampedWindows[hwnd]) == ClampToScreenOption.WorkArea
+                        ? screen.WorkArea
+                        : screen.Bounds;
 
                     var width = rect.Right - rect.Left;
                     var height = rect.Bottom - rect.Top;
