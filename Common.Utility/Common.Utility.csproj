@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ShellUtility.Screens" Version="1.0.35" />
+    <PackageReference Include="ShellUtility.Screens" Version="1.0.38" />
   </ItemGroup>
 
   <ItemGroup>

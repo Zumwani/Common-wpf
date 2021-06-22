@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace Common.Utility
@@ -10,7 +9,7 @@ namespace Common.Utility
 
     public enum VisualState
     {
-        Normal, Hover, Click
+        Normal, Hover, Click, Checked
     }
 
     public static class VisualStateUtility
@@ -90,6 +89,9 @@ namespace Common.Utility
         public static bool GetShowContextMenuOnLeftClick(DependencyObject obj) => (bool)obj.GetValue(ShowContextMenuOnLeftClickProperty);
         public static void SetShowContextMenuOnLeftClick(DependencyObject obj, bool value) => obj.SetValue(ShowContextMenuOnLeftClickProperty, value);
 
+        public static bool GetIsChecked(DependencyObject obj) => (bool)obj.GetValue(IsCheckedProperty);
+        public static void SetIsChecked(DependencyObject obj, bool value) => obj.SetValue(IsCheckedProperty, value);
+
         public static readonly DependencyProperty IsEnabledProperty =
             DependencyProperty.RegisterAttached("IsEnabled", typeof(bool), typeof(VisualStateUtility), new PropertyMetadata(false, OnIsEnabledChanged));
 
@@ -101,6 +103,9 @@ namespace Common.Utility
 
         public static readonly DependencyProperty ShowContextMenuOnLeftClickProperty =
             DependencyProperty.RegisterAttached("ShowContextMenuOnLeftClick", typeof(bool), typeof(VisualStateUtility), new PropertyMetadata(false));
+
+        public static readonly DependencyProperty IsCheckedProperty =
+            DependencyProperty.RegisterAttached("IsChecked", typeof(bool), typeof(VisualStateUtility), new PropertyMetadata(false));
 
         #endregion
         #region Handlers
@@ -257,15 +262,22 @@ namespace Common.Utility
             var animateClick = !(isRight ?? false) || (GetAnimateRightClick(element) ?? element.ContextMenu is not null);
 
             var state = VisualState.Normal;
+
+            if (GetIsChecked(element))
+                state = VisualState.Checked;
+            else if (state == VisualState.Checked)
+                state = VisualState.Normal;
+
             if (isMouseOver ?? false)
                 state = VisualState.Hover;
-            if (isPressed ?? false && animateClick)
+
+            if ((isPressed ?? false) && animateClick)
                 state = VisualState.Click;
 
             var prevState = GetVisualState(element);
 
             SetVisualState(element, state);
-            RaiseEvent(StateChangedEvent, element);
+            _ = RaiseEvent(StateChangedEvent, element);
 
             if (isPressed.HasValue && !isContextMenuClose)
                 RaiseClickEvents(element, isRight ?? false, isUp: prevState == VisualState.Click);
@@ -286,12 +298,15 @@ namespace Common.Utility
             {
 
                 if (!isUp)
-                    RaiseEvent(LeftClickStartEvent, element);
+                    _ = RaiseEvent(LeftClickStartEvent, element);
                 else
                 {
 
-                    if (GetShowContextMenuOnLeftClick(element))
-                        element.ContextMenu?.SetValue(ContextMenu.IsOpenProperty, true);
+                    if (GetShowContextMenuOnLeftClick(element) && element.ContextMenu is not null)
+                    {
+                        element.ContextMenu.DataContext = element.DataContext;
+                        element.ContextMenu.IsOpen = true;
+                    }
 
                     if (RaiseEvent(LeftClickEvent, element))
                         InvokeCommand(LeftClickCommandProperty.Name);
@@ -302,7 +317,7 @@ namespace Common.Utility
             else if (isRight)
             {
                 if (!isUp)
-                    RaiseEvent(RightClickStartEvent, element);
+                    _ = RaiseEvent(RightClickStartEvent, element);
                 else if (RaiseEvent(RightClickEvent, element))
                     InvokeCommand(RightClickCommandProperty.Name);
             }

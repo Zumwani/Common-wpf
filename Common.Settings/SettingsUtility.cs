@@ -86,10 +86,11 @@ namespace Common
         /// <para>Ensures all settings have been writted to the registry.</para>
         /// <para>Values are not written to the registry immediately, so that we don't spam write when using bindings, the delay is 0.5 seconds. This method invokes write immediately on all pending writes.</para>
         /// </summary>
-        public static void EnsureWritten()
+        /// <param name="forceWrite">Writes values even if there are no pending writes.</param>
+        public static void EnsureWritten(bool forceWrite = false)
         {
-            foreach (var setting in InitializedSettings)
-                if (setting?.WriteTimer?.IsEnabled ?? false)
+            foreach (var setting in forceWrite ? AllSettings : InitializedSettings)
+                if (forceWrite || (setting?.WriteTimer?.IsEnabled ?? false))
                 {
                     setting.WriteTimer.Stop();
                     setting.DoWrite();

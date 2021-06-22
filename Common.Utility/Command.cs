@@ -41,7 +41,7 @@ namespace Common.Utility
         bool ICommand.CanExecute(object parameter)
         {
 
-            if (parameter is null || typeof(T).IsSubclassOf(parameter.GetType()))
+            if (parameter is null || parameter is T)
                 return CanExecute((T)parameter);
             return false;
 
@@ -49,7 +49,7 @@ namespace Common.Utility
 
         void ICommand.Execute(object parameter)
         {
-            if (parameter is null || typeof(T).IsSubclassOf(parameter.GetType()))
+            if (parameter is null || parameter is T)
                 Execute((T)parameter);
         }
 

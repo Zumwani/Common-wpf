@@ -22,3 +22,8 @@ dotnet_diagnostic.CA1707.severity = none
 
 # CA1051: Do not declare visible instance fields
 dotnet_diagnostic.CA1051.severity = none
+
+# IDE0011: Add braces
+dotnet_diagnostic.IDE0011.severity = none
+
+dotnet_diagnostic.CS0067.severity = none

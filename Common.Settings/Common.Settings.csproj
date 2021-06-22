@@ -24,8 +24,8 @@
     </None>
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(BuildingInsideVisualStudio)' == 'true'">
+  <!--<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(BuildingInsideVisualStudio)' == 'true'">
     <Exec Command="&quot;$(SolutionDir)\VersionIncrementer.exe&quot; -increment &quot;$(ProjectPath)&quot; &quot;$(ProjectDir)\Version.props&quot;" />
-  </Target>
+  </Target>-->
 
 </Project>
