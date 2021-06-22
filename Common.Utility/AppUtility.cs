@@ -88,10 +88,13 @@ namespace Common.Utility
             /// <summary>Gets if auto start is enabled.</summary>
             public bool IsEnabled
             {
-                get => (string)Key.GetValue(Info.ExecutablePath) == Info.ExecutablePath.Quotify();
+                get => (string)Key.GetValue(Info.PackageName) == Info.ExecutablePath.Quotify();
                 set
                 {
-                    Key.SetValue(Info.ExecutablePath, Info.ExecutablePath.Quotify());
+                    if (value)
+                        Key.SetValue(Info.PackageName, Info.ExecutablePath.Quotify());
+                    else
+                        Key.DeleteValue(Info.PackageName);
                     PropertyChanged?.Invoke(this, new(nameof(IsEnabled)));
                 }
             }
