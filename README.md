@@ -125,6 +125,9 @@ public class App : System.Windows.Application
             Shutdown();
             return;
         }
+        
+        //Enable auto start, can be bound to using two-way binding
+        AppUtility.AutoStart.IsEnabled = true;
 
     }
     
