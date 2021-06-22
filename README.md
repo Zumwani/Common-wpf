@@ -127,6 +127,7 @@ public class App : System.Windows.Application
         }
         
         //Enable auto start, can be bound to using two-way binding
+        //{Binding Source={x:Static common:AppUtility.AutoStart}, Path=IsEnabled, Mode=TwoWay}
         AppUtility.AutoStart.IsEnabled = true;
 
     }
