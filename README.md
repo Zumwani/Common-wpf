@@ -109,5 +109,29 @@ public class Window : System.Windows.Window
         this.MakeSureVisible();
 
     }
+}
+
+```
+```csharp
+public class App : System.Windows.Application
+{
+
+    void Application_Startup(object sender, StartupEventArgs e)
+    {
+    
+        //Makes sure app runs as single instance
+        if (AppUtility.IsSecondaryInstance(HandleArguments))
+        {
+            Shutdown();
+            return;
+        }
+
+    }
+    
+    //Handle command line arguements here, which are passed from secondary instance
+    void HandleArguments(AppArguments arguments)
+    { }
+    
+}
 
 ```
