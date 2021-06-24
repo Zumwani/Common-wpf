@@ -291,6 +291,16 @@ namespace Common.Utility
         }
 
         #endregion
+        #region Pack uri scheme
+
+        const string PackScheme = "pack";
+        public static void RegisterPackUriScheme()
+        {
+            if (!UriParser.IsKnownScheme(PackScheme))
+                UriParser.Register(new GenericUriParser(GenericUriParserOptions.GenericAuthority), PackScheme, -1);
+        }
+
+        #endregion
 
     }
 

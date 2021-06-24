@@ -24,6 +24,7 @@ namespace Common
         public bool IsDefault { get; }
         void DoWrite();
         DispatcherTimer WriteTimer { get; }
+        internal void MakeSureInitialized();
     }
 
     /// <summary>Represents a setting in an app. Notifies and saves when value changes (in current process only). Values are saved to registry.</summary>
@@ -40,6 +41,9 @@ namespace Common
             Source = Current;
             Path = new PropertyPath(nameof(Value));
         }
+
+        void ISetting.MakeSureInitialized() =>
+            _ = Current;
 
         /// <summary>The current instance of this setting.</summary>
         public static TSelf Current { get; } = new TSelf().Setup();
@@ -170,7 +174,7 @@ namespace Common
         void DeleteValue()
         {
             using var key = SettingsUtility.RegKey(writable: true);
-            key?.DeleteValue(Key);
+            key?.DeleteValue(Key, throwOnMissingValue: false);
         }
 
         /// <summary>Refreshes the value from the registry.</summary>
@@ -240,7 +244,7 @@ namespace Common
         public bool IsDefault => EqualityComparer<T>.Default.Equals(Value, DefaultValue);
 
         /// <summary>Resets value to default, this deletes value from registry until new value is set.</summary>
-        public void Reset()
+        public virtual void Reset()
         {
             var v = value;
             value = DefaultValue;

@@ -138,8 +138,8 @@ namespace Common
         /// </summary>
         protected override void OnSetup()
         {
-            foreach (var window in Value)
-                ((INotifyPropertyChanged)window).PropertyChanged += Windows_PropertyChanged;
+            foreach (var item in Value.OfType<INotifyPropertyChanged>().ToArray())
+                item.PropertyChanged += Windows_PropertyChanged;
         }
 
         void Windows_PropertyChanged(object sender, PropertyChangedEventArgs e) =>
@@ -157,6 +157,12 @@ namespace Common
 
             return new(collection);
 
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+            Value = new(collection = new());
         }
 
     }

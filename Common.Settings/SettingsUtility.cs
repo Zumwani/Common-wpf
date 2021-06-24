@@ -76,10 +76,8 @@ namespace Common
         {
             var settings = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).Where(t => typeof(ISetting).IsAssignableFrom(t));
             foreach (var setting in settings)
-            {
-                if (setting != typeof(ISetting) && !setting.IsAbstract)
-                    typeof(Setting<,>).MakeGenericType(setting.BaseType.GetGenericArguments()).GetProperty("Current").GetValue(null);
-            }
+                if (!setting.IsAbstract)
+                    ((ISetting)Activator.CreateInstance(setting)).MakeSureInitialized();
         }
 
         /// <summary>
