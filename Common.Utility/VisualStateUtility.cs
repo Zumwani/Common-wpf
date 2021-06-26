@@ -105,7 +105,7 @@ namespace Common.Utility
             DependencyProperty.RegisterAttached("ShowContextMenuOnLeftClick", typeof(bool), typeof(VisualStateUtility), new PropertyMetadata(false));
 
         public static readonly DependencyProperty IsCheckedProperty =
-            DependencyProperty.RegisterAttached("IsChecked", typeof(bool), typeof(VisualStateUtility), new PropertyMetadata(false));
+            DependencyProperty.RegisterAttached("IsChecked", typeof(bool), typeof(VisualStateUtility), new PropertyMetadata(false, OnCheckedChanged));
 
         #endregion
         #region Handlers
@@ -180,7 +180,15 @@ namespace Common.Utility
         }
 
         #endregion
+        #region Checked
 
+        static void OnCheckedChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (sender is FrameworkElement element)
+                UpdateVisualState(element, isChecked: (bool)e.NewValue);
+        }
+
+        #endregion
 
         #endregion
         #region Block events
@@ -247,10 +255,9 @@ namespace Common.Utility
         #endregion
         #region State switching
 
-        static void UpdateVisualState(FrameworkElement element, bool? isMouseOver = null, bool? isPressed = null, bool? isRight = null, bool isContextMenuClose = false)
+        static void UpdateVisualState(FrameworkElement element, bool? isMouseOver = null, bool? isPressed = null, bool? isChecked = null, bool? isRight = null, bool isContextMenuClose = false)
         {
 
-            isMouseOver ??= GetVisualState(element) > VisualState.Normal;
             if (element.ContextMenu?.IsOpen ?? false)
             {
                 element.ContextMenu.Closed -= ContextMenu_Closed;
@@ -263,16 +270,18 @@ namespace Common.Utility
 
             var state = VisualState.Normal;
 
-            if (GetIsChecked(element))
+
+            if (isChecked ?? false)
                 state = VisualState.Checked;
-            else if (state == VisualState.Checked)
-                state = VisualState.Normal;
 
             if (isMouseOver ?? false)
                 state = VisualState.Hover;
 
             if ((isPressed ?? false) && animateClick)
                 state = VisualState.Click;
+
+            if (state == VisualState.Normal && GetIsChecked(element))
+                state = VisualState.Checked;
 
             var prevState = GetVisualState(element);
 
@@ -305,6 +314,7 @@ namespace Common.Utility
                     if (GetShowContextMenuOnLeftClick(element) && element.ContextMenu is not null)
                     {
                         element.ContextMenu.DataContext = element.DataContext;
+                        element.ContextMenu.PlacementTarget = element;
                         element.ContextMenu.IsOpen = true;
                     }
 
