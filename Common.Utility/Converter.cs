@@ -6,8 +6,52 @@ using System.Windows.Data;
 namespace Common.Utility
 {
 
-    /// <inheritdoc cref="IValueConverter"/>/>
-    public abstract class Converter : MarkupExtension, IValueConverter
+    static class ConverterUtility
+    {
+
+        public static bool Convert<T>(object value, out T outValue, CultureInfo culture = null) =>
+            Convert<T, object>(value, null, out outValue, out _, culture, allowParamNull: true);
+
+        public static bool Convert<T, TParam>(object value, object param, out T outValue, out TParam outParam, CultureInfo culture = null, bool allowParamNull = true)
+        {
+
+            culture ??= CultureInfo.InvariantCulture;
+
+            outValue = (T)System.Convert.ChangeType(value, typeof(T), culture);
+            outParam = (TParam)System.Convert.ChangeType(param, typeof(TParam), culture);
+
+            return
+                outValue is not null &&
+                (outParam is not null || allowParamNull);
+
+        }
+
+        public static bool Convert<T>(object[] value, out T[] outValue, CultureInfo culture = null) =>
+            Convert<T, object>(value, null, out outValue, out _, culture, allowParamNull: true);
+
+        public static bool Convert<T, TParam>(object[] values, object param, out T[] outValue, out TParam outParam, CultureInfo culture = null, bool allowParamNull = true)
+        {
+
+            outValue = null;
+            outParam = default;
+
+            culture ??= CultureInfo.InvariantCulture;
+
+            var v = values.Select(v => { var couldConvert = Convert<T>(v, out var newValue, culture); return (couldConvert, newValue); }).ToArray();
+            if (v.Any(v1 => !v1.couldConvert))
+                return false;
+
+            outValue = v.Select(v => v.newValue).ToArray();
+
+            outParam = (TParam)System.Convert.ChangeType(param, typeof(TParam), culture);
+            return outParam is not null || allowParamNull;
+
+        }
+
+    }
+
+    /// <inheritdoc cref="IValueConverter"/>
+    public abstract class BetterConverter : MarkupExtension, IValueConverter
     {
 
         /// <inheritdoc cref="IValueConverter.Convert(object, Type, object, CultureInfo)"/>/>
@@ -34,8 +78,8 @@ namespace Common.Utility
 
     }
 
-    /// <inheritdoc cref="IValueConverter"/>/>
-    public abstract class Converter<TOut> : MarkupExtension, IValueConverter
+    /// <inheritdoc cref="IValueConverter"/>
+    public abstract class BetterConverter<TOut> : MarkupExtension, IValueConverter
     {
 
         /// <inheritdoc cref="IValueConverter.Convert(object, Type, object, CultureInfo)"/>/>
@@ -48,17 +92,15 @@ namespace Common.Utility
         object IValueConverter.Convert(object value, Type _, object _1, CultureInfo _2) =>
             Convert(value);
 
-        object IValueConverter.ConvertBack(object value, Type _, object _1, CultureInfo _2)
-        {
-            if (value is null || typeof(TOut).IsAssignableFrom(value.GetType()))
-                return ConvertBack((TOut)value);
-            throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
-        }
+        object IValueConverter.ConvertBack(object value, Type _, object _1, CultureInfo culture) =>
+            ConverterUtility.Convert<TOut>(value, out var _value, culture)
+                ? ConvertBack(_value)
+                : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
 
     }
 
-    /// <inheritdoc cref="IValueConverter"/>/>
-    public abstract class Converter<TIn, TOut> : MarkupExtension, IValueConverter
+    /// <inheritdoc cref="IValueConverter"/>
+    public abstract class BetterConverter<TIn, TOut> : MarkupExtension, IValueConverter
     {
 
         /// <inheritdoc cref="IValueConverter.Convert(object, Type, object, CultureInfo)"/>/>
@@ -68,24 +110,20 @@ namespace Common.Utility
         public virtual TIn ConvertBack(TOut value) =>
             throw new NotImplementedException();
 
-        object IValueConverter.Convert(object value, Type _, object _1, CultureInfo _2)
-        {
-            if (value is null || typeof(TIn).IsAssignableFrom(value.GetType()))
-                return Convert((TIn)value);
-            throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
-        }
+        object IValueConverter.Convert(object value, Type _, object _1, CultureInfo culture) =>
+            ConverterUtility.Convert<TIn>(value, out var _value, culture)
+                ? Convert(_value)
+                : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
 
-        object IValueConverter.ConvertBack(object value, Type _, object _1, CultureInfo _2)
-        {
-            if (value is null || typeof(TOut).IsAssignableFrom(value.GetType()))
-                return ConvertBack((TOut)value);
-            throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
-        }
+        object IValueConverter.ConvertBack(object value, Type _, object _1, CultureInfo culture) =>
+            ConverterUtility.Convert<TOut>(value, out var _value, culture)
+                ? ConvertBack(_value)
+                : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
 
     }
 
-    /// <inheritdoc cref="IValueConverter"/>/>
-    public abstract class Converter<TIn, TOut, TParameter> : MarkupExtension, IValueConverter
+    /// <inheritdoc cref="IValueConverter"/>
+    public abstract class BetterConverter<TIn, TOut, TParameter> : MarkupExtension, IValueConverter
     {
 
         /// <inheritdoc cref="IValueConverter.Convert(object, Type, object, CultureInfo)"/>/>
@@ -95,25 +133,20 @@ namespace Common.Utility
         public virtual TIn ConvertBack(TOut value, TParameter parameter) =>
             throw new NotImplementedException();
 
-        object IValueConverter.Convert(object value, Type _, object parameter, CultureInfo _1)
-        {
-            var param = (parameter is null || typeof(TParameter).IsAssignableFrom(parameter.GetType())) ? (TParameter)parameter : default;
-            if (value is null || typeof(TIn).IsAssignableFrom(value.GetType()))
-                return Convert((TIn)value, param);
-            throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
-        }
+        object IValueConverter.Convert(object value, Type _, object parameter, CultureInfo culture) =>
+            ConverterUtility.Convert<TIn, TParameter>(value, parameter, out var _value, out var _parameter, culture)
+                ? Convert(_value, _parameter)
+                : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
 
-        object IValueConverter.ConvertBack(object value, Type _, object parameter, CultureInfo _1)
-        {
-            var param = (parameter is null || typeof(TParameter).IsAssignableFrom(parameter.GetType())) ? (TParameter)parameter : default;
-            if (value is null || typeof(TOut).IsAssignableFrom(value.GetType()))
-                return ConvertBack((TOut)value, param);
-            throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
-        }
+        object IValueConverter.ConvertBack(object value, Type _, object parameter, CultureInfo culture) =>
+            ConverterUtility.Convert<TOut, TParameter>(value, parameter, out var _value, out var _parameter, culture)
+                ? ConvertBack(_value, _parameter)
+                : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
 
     }
 
-    public abstract class MultiConverter : MarkupExtension, IMultiValueConverter
+    /// <inheritdoc cref="IMultiValueConverter"/>
+    public abstract class BetterMultiConverter : MarkupExtension, IMultiValueConverter
     {
 
         public virtual object Convert(object[] values) =>
@@ -136,57 +169,43 @@ namespace Common.Utility
 
     }
 
-    public abstract class MultiConverter<TIn, TOut> : MarkupExtension, IMultiValueConverter
+    /// <inheritdoc cref="IMultiValueConverter"/>
+    public abstract class BetterMultiConverter<TIn, TOut> : MarkupExtension, IMultiValueConverter
     {
 
         public abstract TOut Convert(TIn[] values);
         public virtual TIn[] ConvertBack(TOut value) =>
             throw new NotImplementedException();
 
-        object IMultiValueConverter.Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-        {
+        object IMultiValueConverter.Convert(object[] values, Type _, object _1, CultureInfo culture) =>
+            ConverterUtility.Convert<TIn>(values, out var _values, culture)
+                ? Convert(_values)
+                : throw new ArgumentException("One or more variables in 'values' was not of correct type.");
 
-            if (!values.All(v => v is null || typeof(TIn).IsAssignableFrom(v.GetType())))
-                throw new ArgumentException("One or more variables in 'values' was not of correct type.");
-
-            return Convert(values.Select(v => (TIn)v).ToArray());
-
-        }
-
-        object[] IMultiValueConverter.ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
-            if (value is null || typeof(TOut).IsAssignableFrom(value.GetType()))
-                return ConvertBack((TOut)value).Cast<object>().ToArray();
-            throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
-        }
+        object[] IMultiValueConverter.ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) =>
+            ConverterUtility.Convert<TOut>(value, out var _value, culture)
+                ? ConvertBack(_value).Cast<object>().ToArray()
+                : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
 
     }
 
-    public abstract class MultiConverter<TIn, TOut, TParameter> : MarkupExtension, IMultiValueConverter
+    /// <inheritdoc cref="IMultiValueConverter"/>
+    public abstract class BetterMultiConverter<TIn, TOut, TParameter> : MarkupExtension, IMultiValueConverter
     {
 
         public abstract TOut Convert(TIn[] values, TParameter parameter);
         public virtual TIn[] ConvertBack(TOut value, TParameter parameter) =>
             throw new NotImplementedException();
 
-        object IMultiValueConverter.Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-        {
+        object IMultiValueConverter.Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
+            ConverterUtility.Convert<TIn, TParameter>(values, parameter, out var _values, out var _param, culture: culture)
+                ? Convert(_values, _param)
+                : throw new ArgumentException("One or more variables in 'values' was not of correct type.");
 
-            if (!values.All(v => v is null || typeof(TIn).IsAssignableFrom(v.GetType())))
-                throw new ArgumentException("One or more variables in 'values' was not of correct type.");
-
-            var param = (parameter is null || typeof(TParameter).IsAssignableFrom(parameter.GetType())) ? (TParameter)parameter : default;
-            return Convert(values.Select(v => (TIn)v).ToArray(), param);
-
-        }
-
-        object[] IMultiValueConverter.ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
-            var param = (parameter is null || typeof(TParameter).IsAssignableFrom(parameter.GetType())) ? (TParameter)parameter : default;
-            if (value is null || typeof(TOut).IsAssignableFrom(value.GetType()))
-                return ConvertBack((TOut)value, param).Cast<object>().ToArray();
-            throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
-        }
+        object[] IMultiValueConverter.ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) =>
+            ConverterUtility.Convert<TOut, TParameter>(value, parameter, out var _values, out var _param, culture: culture)
+                ? ConvertBack(_values, _param).Cast<object>().ToArray()
+                : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
 
     }
 
