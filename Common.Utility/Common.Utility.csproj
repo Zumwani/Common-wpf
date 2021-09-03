@@ -18,14 +18,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ShellUtility.Screens" Version="1.0.38" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ShellUtility\ShellUtility.Screens\ShellUtility.Screens.csproj" />
   </ItemGroup>
 
   <!--<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(BuildingInsideVisualStudio)' == 'true'">
