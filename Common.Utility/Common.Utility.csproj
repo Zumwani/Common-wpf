@@ -25,7 +25,7 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ShellUtility.Screens"/>
+		<PackageReference Include="ShellUtility.Screens" Version="1.0.38"/>
 	</ItemGroup>
 
   <!--<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(BuildingInsideVisualStudio)' == 'true'">
