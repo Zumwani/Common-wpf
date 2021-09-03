@@ -29,8 +29,8 @@ namespace Common
         public static string AppName { get; set; } = Assembly.GetEntryAssembly().GetName().Name;
 
         /// <summary>Gets registry key for this app.</summary>
-        public static RegistryKey RegKey(bool writable = false) =>
-            Registry.CurrentUser.CreateSubKey(@$"Software\{AppName}", writable: writable);
+        public static RegistryKey RegKey(bool writable = false, string keyName = null) =>
+            Registry.CurrentUser.CreateSubKey(@$"Software\{keyName ?? AppName}", writable: writable);
 
         internal static void Add(ISetting setting) =>
             list.Add(setting);

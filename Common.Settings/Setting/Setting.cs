@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Threading;
@@ -12,7 +14,7 @@ namespace Common
 {
 
     /// <summary>A non-generic representation of a setting, implemented by <see cref="Setting{T, TSelf}"/>, and used by <see cref="SettingsUtility"/>.</summary>
-    public interface ISetting
+    public interface ISetting : INotifyPropertyChanged
     {
         public object Value { get; set; }
         public object DefaultValue { get; }
@@ -42,6 +44,9 @@ namespace Common
             Path = new PropertyPath(nameof(Value));
         }
 
+        public Setting(string path) : this() =>
+            Path = new(path);
+
         void ISetting.MakeSureInitialized() =>
             _ = Current;
 
@@ -51,11 +56,28 @@ namespace Common
         //Called when created by Current, we inherit from MarkupExtension, so we don't want to do this for those instances, and we want to be singleton anyways
         TSelf Setup()
         {
+
             value = Read();
             OnAfterLoad();
             SettingsUtility.Add(this);
             OnSetup();
+
+            if (!CanSaveOrLoad)
+            {
+                _ = Task.Run(async () =>
+                 {
+
+                     while (!CanSaveOrLoad)
+                         await Task.Delay(100);
+
+                     value = Read();
+                     OnAfterLoad();
+
+                 });
+            }
+
             return (TSelf)this;
+
         }
 
         /// <summary>Occurs when Value changes.</summary>
@@ -121,16 +143,31 @@ namespace Common
         #endregion
         #region Registry
 
+        /// <summary>
+        /// <para>The name of the registry key, defaults to <see cref="System.Reflection.Assembly.GetEntryAssembly"/> name.</para>
+        /// <para>Use <see cref="CanSaveOrLoad"/> to prevent save when this is not yet initialized.</para>
+        /// </summary>
+        protected virtual string RegKeyName { get; }
+
+        /// <summary>Specifies whatever data is saved or not.</summary>
+        protected virtual bool CanSaveOrLoad { get; } = true;
+        protected virtual bool SerializeTimespanAsTicks { get; } = true;
+
         DispatcherTimer WriteTimer { get; set; }
 
         void DoWrite()
         {
+
+            if (!CanSaveOrLoad)
+                return;
+
             //Debug.WriteLine("Write: " + Key);
             OnBeforeSave();
-            using var key = SettingsUtility.RegKey(writable: true);
+            using var key = SettingsUtility.RegKey(writable: true, RegKeyName);
             var json = Serialize(value);
             key.SetValue(Key, json);
             WriteTimer.Stop();
+
         }
 
         /// <summary>Saves this setting to registry.</summary>
@@ -161,7 +198,10 @@ namespace Common
         T Read()
         {
 
-            using var key = SettingsUtility.RegKey();
+            if (!CanSaveOrLoad)
+                return default;
+
+            using var key = SettingsUtility.RegKey(keyName: RegKeyName);
             var json = (string)key?.GetValue(Key, null);
 
             var obj = Deserialize(json);
@@ -186,13 +226,17 @@ namespace Common
 
         /// <summary>Overrides default serialization.</summary>
         protected virtual string Serialize(T value) =>
-            JsonSerializer.Serialize(Value);
+            SerializeTimespanAsTicks && value is TimeSpan t
+            ? t.Ticks.ToString(CultureInfo.InvariantCulture)
+            : JsonSerializer.Serialize(Value);
 
         /// <summary>Overrides default deserialization.</summary>
         protected virtual T Deserialize(string json) =>
-            json is not null
-            ? JsonSerializer.Deserialize<T>(json)
-            : DefaultValue;
+            typeof(T) == typeof(TimeSpan) && SerializeTimespanAsTicks
+            ? (T)(object)TimeSpan.FromTicks(int.TryParse(json, out var i) ? i : 0)
+            : json is not null
+                    ? JsonSerializer.Deserialize<T>(json)
+                    : DefaultValue;
 
         #endregion
         #region Validation
