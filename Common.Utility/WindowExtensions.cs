@@ -164,6 +164,12 @@ namespace Common.Utility
                     if (isLeft || isRight || isTop || isBottom)
                     {
 
+                        if (width > bounds.Width)
+                            width = bounds.Width;
+
+                        if (height > bounds.Height)
+                            height = bounds.Height;
+
                         rect.Left = Math.Clamp(preferredRect.Left, bounds.Left, bounds.Right - width);
                         rect.Top = Math.Clamp(preferredRect.Top, bounds.Top, bounds.Bottom - height);
 
