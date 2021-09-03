@@ -17,12 +17,24 @@ namespace Common.Utility
 
             culture ??= CultureInfo.InvariantCulture;
 
-            outValue = (T)System.Convert.ChangeType(value, typeof(T), culture);
-            outParam = (TParam)System.Convert.ChangeType(param, typeof(TParam), culture);
+            var valueIsNull = value is null;
+            var paramIsNull = param is null;
+
+            outValue = value is IConvertible
+                ? (T)System.Convert.ChangeType(value, typeof(T), culture)
+                : (typeof(T).IsAssignableFrom(value?.GetType())
+                    ? (T)value
+                    : default);
+
+            outParam = param is IConvertible
+                ? (TParam)System.Convert.ChangeType(value, typeof(TParam), culture)
+                : (typeof(TParam).IsAssignableFrom(value?.GetType())
+                ? (TParam)value
+                : default);
 
             return
-                outValue is not null &&
-                (outParam is not null || allowParamNull);
+                (valueIsNull || outValue is not null) &&
+                (paramIsNull || outParam is not null || allowParamNull);
 
         }
 
@@ -95,7 +107,7 @@ namespace Common.Utility
         object IValueConverter.ConvertBack(object value, Type _, object _1, CultureInfo culture) =>
             ConverterUtility.Convert<TOut>(value, out var _value, culture)
                 ? ConvertBack(_value)
-                : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
+                : value;
 
     }
 
@@ -112,13 +124,13 @@ namespace Common.Utility
 
         object IValueConverter.Convert(object value, Type _, object _1, CultureInfo culture) =>
             ConverterUtility.Convert<TIn>(value, out var _value, culture)
-                ? Convert(_value)
-                : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
+                ? Convert(_value ?? default)
+                : value;
 
         object IValueConverter.ConvertBack(object value, Type _, object _1, CultureInfo culture) =>
-            ConverterUtility.Convert<TOut>(value, out var _value, culture)
+           ConverterUtility.Convert<TOut>(value, out var _value, culture)
                 ? ConvertBack(_value)
-                : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
+                : value;
 
     }
 
@@ -136,12 +148,12 @@ namespace Common.Utility
         object IValueConverter.Convert(object value, Type _, object parameter, CultureInfo culture) =>
             ConverterUtility.Convert<TIn, TParameter>(value, parameter, out var _value, out var _parameter, culture)
                 ? Convert(_value, _parameter)
-                : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
+                : value;
 
         object IValueConverter.ConvertBack(object value, Type _, object parameter, CultureInfo culture) =>
             ConverterUtility.Convert<TOut, TParameter>(value, parameter, out var _value, out var _parameter, culture)
                 ? ConvertBack(_value, _parameter)
-                : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
+                : value;
 
     }
 
