@@ -20,18 +20,11 @@ namespace Common.Utility
 
     [Serializable]
     /// <summary>The arguments that an instance of this app was started with.</summary>
-    public class AppArguments /*: IEnumerable<string>*/
+    public class AppArguments
     {
 
         public string[] Parameters { get; set; }
         public string AsString { get; set; }
-
-        //#region IEnumerable
-
-        //public IEnumerator<string> GetEnumerator() => ((IEnumerable<string>)Parameters).GetEnumerator();
-        //IEnumerator IEnumerable.GetEnumerator() => Parameters.GetEnumerator();
-
-        //#endregion
 
     }
 
@@ -40,11 +33,8 @@ namespace Common.Utility
     {
 
         static readonly Dispatcher dispatcher;
-        static AppUtility()
-        {
+        static AppUtility() =>
             dispatcher = Dispatcher.CurrentDispatcher;
-            SetupMutex();
-        }
 
         #region Info
 
@@ -108,8 +98,12 @@ namespace Common.Utility
         #region Single instance
 
         /// <summary>Gets if this instance is primary.</summary>
-        public static bool IsPrimaryInstance(ParseArguments secondaryInstanceArgumentsHandler = null, bool handleThisInstanceToo = true)
+        /// <param name="mutexName">The name of the mutex, only has an effect if mutex is not already setup.</param>
+        public static bool IsPrimaryInstance(ParseArguments secondaryInstanceArgumentsHandler = null, bool handleThisInstanceToo = true, string mutexName = null)
         {
+
+            if (mutex is null)
+                SetupMutex(mutexName);
 
             if (!mutexIsOwnedByUs)
                 return false;
@@ -126,8 +120,12 @@ namespace Common.Utility
         }
 
         /// <summary>Gets if this instance is secondary.</summary>
-        public static bool IsSecondaryInstance(ParseArguments secondaryInstanceArgumentsHandler = null, bool handleThisInstanceToo = true)
+        /// <param name="mutexName">The name of the mutex, only has an effect if mutex is not already setup.</param>
+        public static bool IsSecondaryInstance(ParseArguments secondaryInstanceArgumentsHandler = null, bool handleThisInstanceToo = true, string mutexName = null)
         {
+
+            if (mutex is null)
+                SetupMutex(mutexName);
 
             if (!mutexIsOwnedByUs)
                 return true;
@@ -167,8 +165,10 @@ namespace Common.Utility
 
         static Mutex mutex;
         static bool mutexIsOwnedByUs;
-        static void SetupMutex()
+        static void SetupMutex(string mutexName = null)
         {
+
+            mutexName ??= Info.PackageName;
 
             if (AppUtility.mutex is not null)
                 return;
@@ -177,7 +177,7 @@ namespace Common.Utility
             //Sam Saffron: https://stackoverflow.com/a/229567
             //Wouter: https://stackoverflow.com/a/59079638
 
-            var mutexId = $"Global\\{Info.PackageName}";
+            var mutexId = $"Global\\{mutexName}";
 
             // initiallyOwned: true == false + mutex.WaitOne()
             var mutex = new Mutex(initiallyOwned: true, mutexId, out var mutexCreated);
@@ -298,6 +298,19 @@ namespace Common.Utility
         {
             if (!UriParser.IsKnownScheme(PackScheme))
                 UriParser.Register(new GenericUriParser(GenericUriParserOptions.GenericAuthority), PackScheme, -1);
+        }
+
+        #endregion
+        #region UAC
+
+        /// <summary>Gets if this instance is elevated.</summary>
+        public static bool IsElevated { get; } = GetIsElevated();
+
+        static bool GetIsElevated()
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
 
         #endregion
