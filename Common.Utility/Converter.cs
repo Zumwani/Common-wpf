@@ -27,9 +27,9 @@ namespace Common.Utility
                     : default);
 
             outParam = param is IConvertible
-                ? (TParam)System.Convert.ChangeType(value, typeof(TParam), culture)
-                : (typeof(TParam).IsAssignableFrom(value?.GetType())
-                ? (TParam)value
+                ? (TParam)System.Convert.ChangeType(param, typeof(TParam), culture)
+                : (typeof(TParam).IsAssignableFrom(param?.GetType())
+                ? (TParam)param
                 : default);
 
             return

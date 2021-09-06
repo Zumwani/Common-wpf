@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -19,6 +20,16 @@ namespace Common.Utility
 
     public static class WindowExtensions
     {
+
+        /// <summary>Gets if this window is modal.</summary>
+        public static bool IsModal(this Window window) =>
+            (bool)typeof(Window).GetField("_showingAsDialog", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(window);
+
+        /// <summary>Gets the win32 handle of this <see cref="Window"/>.</summary>
+        public static IntPtr Handle(this Window window, bool ensureCreated = false) =>
+            ensureCreated
+            ? new WindowInteropHelper(window).EnsureHandle()
+            : new WindowInteropHelper(window).Handle;
 
         #region Is resizing
 
