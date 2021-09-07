@@ -129,6 +129,9 @@ namespace Common
 
         #endregion
 
+        public override bool IsDefault => 
+            collection is null || !collection.Any();
+
         /// <summary>The underlying collection.</summary>
         protected ObservableCollection<T> collection = new();
 

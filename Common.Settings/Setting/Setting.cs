@@ -285,7 +285,7 @@ namespace Common
         }
 
         /// <summary>Gets if Value is default.</summary>
-        public bool IsDefault => EqualityComparer<T>.Default.Equals(Value, DefaultValue);
+        public virtual bool IsDefault => EqualityComparer<T>.Default.Equals(Value, DefaultValue);
 
         /// <summary>Resets value to default, this deletes value from registry until new value is set.</summary>
         public virtual void Reset()

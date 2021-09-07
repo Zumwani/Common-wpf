@@ -270,7 +270,6 @@ namespace Common.Utility
 
             var state = VisualState.Normal;
 
-
             if (isChecked ?? false)
                 state = VisualState.Checked;
 
@@ -279,6 +278,9 @@ namespace Common.Utility
 
             if ((isPressed ?? false) && animateClick)
                 state = VisualState.Click;
+
+            if (state == VisualState.Normal && element.IsMouseOver)
+                state = VisualState.Hover;
 
             if (state == VisualState.Normal && GetIsChecked(element))
                 state = VisualState.Checked;
