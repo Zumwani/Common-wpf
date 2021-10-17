@@ -20,21 +20,32 @@ namespace Common.Utility
             var valueIsNull = value is null;
             var paramIsNull = param is null;
 
-            outValue = value is IConvertible
-                ? (T)System.Convert.ChangeType(value, typeof(T), culture)
-                : (typeof(T).IsAssignableFrom(value?.GetType())
-                    ? (T)value
+            try
+            {
+
+                outValue = value is IConvertible
+                    ? (T)System.Convert.ChangeType(value, typeof(T), culture)
+                    : (typeof(T).IsAssignableFrom(value?.GetType())
+                        ? (T)value
+                        : default);
+
+                outParam = param is IConvertible
+                    ? (TParam)System.Convert.ChangeType(param, typeof(TParam), culture)
+                    : (typeof(TParam).IsAssignableFrom(param?.GetType())
+                    ? (TParam)param
                     : default);
 
-            outParam = param is IConvertible
-                ? (TParam)System.Convert.ChangeType(param, typeof(TParam), culture)
-                : (typeof(TParam).IsAssignableFrom(param?.GetType())
-                ? (TParam)param
-                : default);
+                return
+                    (valueIsNull || outValue is not null) &&
+                    (paramIsNull || outParam is not null || allowParamNull);
 
-            return
-                (valueIsNull || outValue is not null) &&
-                (paramIsNull || outParam is not null || allowParamNull);
+            }
+            catch (Exception)
+            {
+                outValue = default;
+                outParam = default;
+                return false;
+            }
 
         }
 
