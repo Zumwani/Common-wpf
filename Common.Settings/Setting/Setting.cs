@@ -18,7 +18,7 @@ namespace Common
     {
         public object Value { get; set; }
         public object DefaultValue { get; }
-        public string Key { get; }
+        public string ValueName { get; }
         public string DisplayName { get; }
         public void Clamp(ref object value);
         public bool Validate(object value);
@@ -165,7 +165,7 @@ namespace Common
             OnBeforeSave();
             using var key = SettingsUtility.RegKey(writable: true, RegKeyName);
             var json = Serialize(value);
-            key.SetValue(Key, json);
+            key.SetValue(ValueName, json);
             WriteTimer.Stop();
 
         }
@@ -202,7 +202,7 @@ namespace Common
                 return default;
 
             using var key = SettingsUtility.RegKey(keyName: RegKeyName);
-            var json = (string)key?.GetValue(Key, null);
+            var json = (string)key?.GetValue(ValueName, null);
 
             var obj = Deserialize(json);
 
@@ -214,7 +214,7 @@ namespace Common
         void DeleteValue()
         {
             using var key = SettingsUtility.RegKey(writable: true);
-            key?.DeleteValue(Key, throwOnMissingValue: false);
+            key?.DeleteValue(ValueName, throwOnMissingValue: false);
         }
 
         /// <summary>Refreshes the value from the registry.</summary>
@@ -257,10 +257,10 @@ namespace Common
         protected virtual void OnAfterLoad()
         { }
 
-        /// <summary>The key of this setting. This is <see cref="Type.FullName"/> of this setting.</summary>
-        public string Key => GetType().FullName;
+        /// <summary>The value name of this setting. This is <see cref="Type.FullName"/>, by default.</summary>
+        public virtual string ValueName => GetType().FullName;
 
-        /// <summary>An optional convience property for those times when we want to display this property in some kind of list, and we want a display name, rather than <see cref="Key"/>.</summary>
+        /// <summary>An optional convience property for those times when we want to display this property in some kind of list, and we want a display name, rather than <see cref="ValueName"/>.</summary>
         public virtual string DisplayName => GetType().Name;
 
         /// <summary>The default value of this setting, which is returned when value does not exist in registry, or value is of wrong type.</summary>
