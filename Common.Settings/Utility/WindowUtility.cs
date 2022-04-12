@@ -27,7 +27,7 @@ public static class WindowUtility
 
         if (list.Contains(window.GetType()) && (bool)e.NewValue)
             throw new InvalidOperationException("Cannot register multiple instances of same window type.");
-        global::Common.Settings.SettingsUtility
+
         if ((bool)e.NewValue)
         {
             list.Add(window.GetType());

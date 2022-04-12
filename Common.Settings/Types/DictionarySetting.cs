@@ -25,6 +25,9 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
         return false;
     }
 
+    /// <summary>Gets the default items.</summary>
+    public virtual IEnumerable<KeyValuePair<TKey, TValue>>? DefaultItems { get; } = null;
+
     #region Constructor / Setup
 
     protected override void OnSetupSingleton()
@@ -35,6 +38,10 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
         if (SettingsUtility.Read<Dictionary<TKey, TValue>>(Name, out var items))
             foreach (var kvp in items)
                 _ = Add(kvp);
+        else if (DefaultItems is not null)
+            foreach (var item in DefaultItems)
+                Set(item);
+
         SetValue(dict);
 
     }

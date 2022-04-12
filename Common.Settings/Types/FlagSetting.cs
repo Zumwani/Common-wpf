@@ -14,6 +14,9 @@ public abstract class FlagSetting<T, TSelf> : SingletonSetting<TSelf>, INotifyCo
     /// <remarks>Note: <see cref="FlagSetting{T, TSelf}"/> uses only <see cref="NotifyCollectionChangedAction.Replace"/> to indicate changes, and <see cref="NotifyCollectionChangedAction.Reset"/> on <see cref="Clear()"/>.</remarks>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
+    /// <summary>Gets the default items.</summary>
+    public virtual IEnumerable<KeyValuePair<T, bool>>? DefaultItems { get; } = null;
+
     #region Constructor / Setup
 
     protected override void OnSetupSingleton()
@@ -22,6 +25,9 @@ public abstract class FlagSetting<T, TSelf> : SingletonSetting<TSelf>, INotifyCo
         if (SettingsUtility.Read<Dictionary<T, bool>>(Name, out var items))
             foreach (var kvp in items)
                 Set(kvp.Key, kvp.Value);
+        else if (DefaultItems is not null)
+            foreach (var item in DefaultItems)
+                Set(item.Key, item.Value);
 
         SetValue(dict);
 

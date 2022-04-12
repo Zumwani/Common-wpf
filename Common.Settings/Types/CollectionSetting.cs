@@ -27,6 +27,9 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
         return false;
     }
 
+    /// <summary>Gets the default items.</summary>
+    public virtual IEnumerable<T>? DefaultItems { get; } = null;
+
     #region Constructor / Setup
 
     protected override void OnSetupSingleton()
@@ -36,6 +39,8 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
 
         if (SettingsUtility.Read<T[]>(Name, out var items))
             AddRange(items);
+        else if (DefaultItems is not null)
+            AddRange(DefaultItems);
         SetValue(list);
 
     }
