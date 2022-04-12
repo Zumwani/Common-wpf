@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
     <Product>Common.Settings</Product>
-    <Version>1.0.16</Version>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 </Project>
