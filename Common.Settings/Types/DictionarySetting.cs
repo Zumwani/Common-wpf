@@ -26,7 +26,7 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
     }
 
     /// <summary>Gets the default items.</summary>
-    public virtual IEnumerable<KeyValuePair<TKey, TValue>>? DefaultItems { get; } = null;
+    public virtual Dictionary<TKey, TValue>? DefaultItems { get; } = null;
 
     #region Constructor / Setup
 

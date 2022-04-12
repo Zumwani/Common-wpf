@@ -15,7 +15,7 @@ public abstract class FlagSetting<T, TSelf> : SingletonSetting<TSelf>, INotifyCo
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
     /// <summary>Gets the default items.</summary>
-    public virtual IEnumerable<KeyValuePair<T, bool>>? DefaultItems { get; } = null;
+    public virtual Dictionary<T, bool>? DefaultItems { get; } = null;
 
     #region Constructor / Setup
 
