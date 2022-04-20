@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Windows.Data;
 
 namespace Common.Settings.Types;
 
@@ -32,10 +33,11 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
 
     #region Constructor / Setup
 
+    public CollectionSetting() : base() =>
+        Mode = BindingMode.OneWay;
+
     protected override void OnSetupSingleton()
     {
-
-        list.CollectionChanged += List_CollectionChanged;
 
         if (SettingsUtility.Read<T[]>(Name, out var items))
             AddRange(items);
@@ -45,36 +47,33 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
 
     }
 
-    void List_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    #endregion
+    #region Notify
+
+    void OnCollectionChanged(IEnumerable<T>? removed = null, IEnumerable<T>? added = null, T? removedItem = default, T? addedItem = default)
     {
 
-        if (e.Action is NotifyCollectionChangedAction.Remove)
-            UnregisterListeners(e.OldItems?.OfType<INotifyPropertyChanged>());
+        UnregisterListeners(removed?.ToArray());
+        RegisterListeners(added?.ToArray());
 
-        else if (e.Action == NotifyCollectionChangedAction.Add)
-            RegisterListeners(e.NewItems?.OfType<INotifyPropertyChanged>());
-
-        else if (e.Action == NotifyCollectionChangedAction.Reset)
-        {
-            UnregisterListeners(e.OldItems?.OfType<INotifyPropertyChanged>());
-            RegisterListeners(e.NewItems?.OfType<INotifyPropertyChanged>());
-        }
+        UnregisterListeners(removedItem);
+        UnregisterListeners(addedItem);
 
         this.Save();
 
     }
 
-    void RegisterListeners(IEnumerable<INotifyPropertyChanged>? items)
+    void RegisterListeners(params T?[]? items)
     {
         if (items is not null)
-            foreach (var item in items)
+            foreach (var item in items.OfType<INotifyPropertyChanged>())
                 item.PropertyChanged += Item_PropertyChanged;
     }
 
-    void UnregisterListeners(IEnumerable<INotifyPropertyChanged>? items)
+    void UnregisterListeners(params T?[]? items)
     {
         if (items is not null)
-            foreach (var item in items)
+            foreach (var item in items.OfType<INotifyPropertyChanged>())
                 item.PropertyChanged -= Item_PropertyChanged;
     }
 
@@ -95,7 +94,8 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
     {
         foreach (var item in items)
             Add(item, notify: false);
-        CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset, newItems: items.ToList(), oldItems: Array.Empty<T>()));
+        OnCollectionChanged(added: items);
+        CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
     }
 
     public void Add(T item) =>
@@ -104,14 +104,20 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
     /// <inheritdoc cref="Add(T)"/>
     public void Add(T item, bool notify = true)
     {
+
         list.Add(item);
         if (notify)
+        {
+            OnCollectionChanged(addedItem: item);
             CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Add, item));
+        }
+
     }
 
     public void Insert(int index, T item)
     {
         list.Insert(index, item);
+        OnCollectionChanged(addedItem: item);
         CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Replace, item, index));
     }
 
@@ -127,7 +133,8 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
     {
         foreach (var item in items)
             _ = Remove(item, notify: false);
-        CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset, newItems: Array.Empty<T>(), oldItems: items.ToList()));
+        OnCollectionChanged(removed: items);
+        CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
     }
 
     public bool Remove(T item) =>
@@ -136,19 +143,28 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
     /// <inheritdoc cref="Remove(T)"/>
     public bool Remove(T item, bool notify = true)
     {
+
         if (list.Remove(item))
         {
+
             if (notify)
+            {
+                OnCollectionChanged(removed: new[] { item });
                 CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, item));
+            }
+
             return true;
         }
+
         return false;
+
     }
 
     public void RemoveAt(int index)
     {
         var item = list[index];
         list.RemoveAt(index);
+        OnCollectionChanged(removedItem: item);
         CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, item, index));
     }
 
@@ -159,7 +175,8 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
     {
         var items = list.ToArray();
         list.Clear();
-        CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset, newItems: Array.Empty<T>(), oldItems: items));
+        OnCollectionChanged(removed: items);
+        CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
     }
 
     #endregion
@@ -168,6 +185,7 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
     {
         var oldItem = list[index];
         list[index] = item;
+        OnCollectionChanged(removedItem: oldItem, addedItem: item);
         CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Replace, item, oldItem, index));
     }
 

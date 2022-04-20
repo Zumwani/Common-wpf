@@ -84,13 +84,19 @@ namespace Common.Utility
                     if (value)
                         Key.SetValue(Info.PackageName, Info.ExecutablePath.Quotify());
                     else
-                        Key.DeleteValue(Info.PackageName);
+                        Key.DeleteValue(Info.PackageName, throwOnMissingValue: false);
                     PropertyChanged?.Invoke(this, new(nameof(IsEnabled)));
                 }
             }
 
             static RegistryKey Key =>
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+
+            /// <summary>Enable auto start.</summary>
+            public void Enable() => IsEnabled = true;
+
+            /// <summary>Disable auto start.</summary>
+            public void Disable() => IsEnabled = false;
 
         }
 
@@ -99,7 +105,7 @@ namespace Common.Utility
 
         /// <summary>Gets if this instance is primary.</summary>
         /// <param name="mutexName">The name of the mutex, only has an effect if mutex is not already setup.</param>
-        public static bool IsPrimaryInstance(ParseArguments secondaryInstanceArgumentsHandler = null, bool handleThisInstanceToo = true, string mutexName = null)
+        public static bool IsPrimaryInstance(ParseArguments secondaryInstanceArgumentsHandler = null, bool handleIfPrimaryInstanceToo = true, string mutexName = null)
         {
 
             if (mutex is null)
@@ -111,7 +117,7 @@ namespace Common.Utility
             if (secondaryInstanceArgumentsHandler is not null)
             {
                 SecondaryInstanceStarted += secondaryInstanceArgumentsHandler;
-                if (handleThisInstanceToo)
+                if (handleIfPrimaryInstanceToo)
                     secondaryInstanceArgumentsHandler?.Invoke(GetArguments());
             }
 
@@ -121,7 +127,7 @@ namespace Common.Utility
 
         /// <summary>Gets if this instance is secondary.</summary>
         /// <param name="mutexName">The name of the mutex, only has an effect if mutex is not already setup.</param>
-        public static bool IsSecondaryInstance(ParseArguments secondaryInstanceArgumentsHandler = null, bool handleThisInstanceToo = true, string mutexName = null)
+        public static bool IsSecondaryInstance(ParseArguments secondaryInstanceArgumentsHandler = null, bool handleIfPrimaryInstanceToo = true, string mutexName = null)
         {
 
             if (mutex is null)
@@ -133,7 +139,7 @@ namespace Common.Utility
             if (secondaryInstanceArgumentsHandler is not null)
             {
                 SecondaryInstanceStarted += secondaryInstanceArgumentsHandler;
-                if (handleThisInstanceToo)
+                if (handleIfPrimaryInstanceToo)
                     secondaryInstanceArgumentsHandler?.Invoke(GetArguments());
             }
 
