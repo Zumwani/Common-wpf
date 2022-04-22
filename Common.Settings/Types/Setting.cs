@@ -37,7 +37,9 @@ public abstract class Setting<T, TSelf> : SingletonSetting<TSelf> where TSelf : 
 
     /// <inheritdoc cref="Setting.DefaultValue"/>
     public virtual new T? DefaultValue =>
-        (T?)base.DefaultValue;
+        base.DefaultValue is not null
+        ? (T?)base.DefaultValue
+        : default;
 
     #endregion
 
