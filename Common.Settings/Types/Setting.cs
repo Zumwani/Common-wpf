@@ -1,5 +1,6 @@
 ﻿using Common.Settings.Internal;
 using System.Windows;
+using System.Windows.Data;
 
 namespace Common.Settings.Types;
 
@@ -12,8 +13,11 @@ public abstract class Setting<T, TSelf> : SingletonSetting<TSelf> where TSelf : 
     public Setting() : this(new(nameof(Value)))
     { }
 
-    public Setting(PropertyPath path) : base() =>
+    public Setting(PropertyPath path) : base()
+    {
         Path = path;
+        Mode = BindingMode.TwoWay;
+    }
 
     protected override void OnSetupSingleton() =>
         SetValue(SettingsUtility.Read<T>(Name, out var value) ? value : DefaultValue);

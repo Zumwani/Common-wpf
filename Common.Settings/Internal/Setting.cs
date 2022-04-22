@@ -62,6 +62,7 @@ public abstract class Setting : Binding, INotifyPropertyChanged
         RegisterListeners();
 
         OnPropertyChanged(nameof(Value));
+        this.Save();
 
     }
 
