@@ -98,8 +98,9 @@ public static class SettingsUtility
         if (pending.Remove(name, out var token))
             token.token.Cancel();
 
-        pending.Add(name, (new(), value));
-        _ = Task.Run(() => Delay(pending[name].token.Token));
+        var t = new CancellationTokenSource();
+        pending.Add(name, (t, value));
+        _ = Task.Run(() => Delay(t.Token));
 
         async void Delay(CancellationToken token)
         {
