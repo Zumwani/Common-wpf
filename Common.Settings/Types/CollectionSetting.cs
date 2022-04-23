@@ -144,16 +144,18 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
     public bool Remove(T item, bool notify = true)
     {
 
+        var i = IndexOf(item);
         if (list.Remove(item))
         {
 
             if (notify)
             {
                 OnCollectionChanged(removed: new[] { item });
-                CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, item));
+                CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, item, i));
             }
 
             return true;
+
         }
 
         return false;
