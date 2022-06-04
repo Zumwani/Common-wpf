@@ -1,4 +1,6 @@
-﻿namespace Common.Settings.Internal;
+﻿using Common.Settings.Utility;
+
+namespace Common.Settings.Internal;
 
 /// <summary>Base class for singleton <see cref="Setting"/>.</summary>
 public abstract class SingletonSetting<TSelf> : Setting where TSelf : SingletonSetting<TSelf>, new()

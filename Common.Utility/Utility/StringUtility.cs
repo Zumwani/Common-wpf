@@ -14,7 +14,7 @@ public static class StringUtility
 
     /// <summary>Adds single quotes to the start and end of the string. Won't add duplicates.</summary>
     public static string SingleQuotify(this string str) =>
-        Quotify(str, '\'');
+        str.Quotify('\'');
 
 }
 

@@ -57,7 +57,7 @@ public static class VisualStateUtility
 
     public static ICommand GetLeftClickCommand(DependencyObject obj) => (ICommand)obj.GetValue(LeftClickCommandProperty);
     public static ICommand GetRightClickCommand(DependencyObject obj) => (ICommand)obj.GetValue(RightClickCommandProperty);
-    public static object GetClickCommandParameter(DependencyObject obj) => (object)obj.GetValue(ClickCommandParameterProperty);
+    public static object GetClickCommandParameter(DependencyObject obj) => obj.GetValue(ClickCommandParameterProperty);
     public static object GetLeftClickCommandParameter(DependencyObject obj) => obj.GetValue(LeftClickCommandParameterProperty);
     public static object GetRightClickCommandParameter(DependencyObject obj) => obj.GetValue(RightClickCommandParameterProperty);
 

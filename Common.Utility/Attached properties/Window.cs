@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -14,18 +13,8 @@ public enum ClampToScreenOption
     None, Screen, WorkArea
 }
 
-public static class WindowExtensions
+public static partial class Common
 {
-
-    /// <summary>Gets if this window is modal.</summary>
-    public static bool IsModal(this Window window) =>
-        (bool)typeof(Window).GetField("_showingAsDialog", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(window);
-
-    /// <summary>Gets the win32 handle of this <see cref="Window"/>.</summary>
-    public static IntPtr Handle(this Window window, bool ensureCreated = false) =>
-        ensureCreated
-        ? new WindowInteropHelper(window).EnsureHandle()
-        : new WindowInteropHelper(window).Handle;
 
     #region Is resizing
 
@@ -36,10 +25,10 @@ public static class WindowExtensions
     public static void SetIsMoving(DependencyObject obj, bool value) => obj.SetValue(IsMovingProperty, value);
 
     public static readonly DependencyProperty IsResizingProperty =
-        DependencyProperty.RegisterAttached("IsResizing", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(null));
+        DependencyProperty.RegisterAttached("IsResizing", typeof(bool), typeof(Common), new PropertyMetadata(null));
 
     public static readonly DependencyProperty IsMovingProperty =
-        DependencyProperty.RegisterAttached("IsMoving", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(false));
+        DependencyProperty.RegisterAttached("IsMoving", typeof(bool), typeof(Common), new PropertyMetadata(false));
 
     #endregion
     #region Clamp to screens
@@ -48,7 +37,7 @@ public static class WindowExtensions
     public static void SetClampToMonitors(DependencyObject obj, ClampToScreenOption value) => obj.SetValue(ClampToMonitorsProperty, value);
 
     public static readonly DependencyProperty ClampToMonitorsProperty =
-        DependencyProperty.RegisterAttached("ClampToMonitors", typeof(ClampToScreenOption), typeof(WindowExtensions), new PropertyMetadata(ClampToScreenOption.None, OnClampToMonitorsChanged));
+        DependencyProperty.RegisterAttached("ClampToMonitors", typeof(ClampToScreenOption), typeof(Common), new PropertyMetadata(ClampToScreenOption.None, OnClampToMonitorsChanged));
 
     static readonly Dictionary<IntPtr, Window> clampedWindows = new();
     static void OnClampToMonitorsChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -357,50 +346,13 @@ public static class WindowExtensions
     }
 
     #endregion
-    #region Location
-
-    /// <summary>Center the window on the users desktop.</summary>
-    public static void Center(this Window window, Action<double> setLeft = null, Action<double> setTop = null, Screen screen = null)
-    {
-        screen ??= Screen.FromWindowHandle(new WindowInteropHelper(window).EnsureHandle());
-        window?.CenterVertically(setTop, screen);
-        window?.CenterHorizontally(setLeft, screen);
-    }
-
-    /// <summary>Center window vertically on the users desktop.</summary>
-    public static void CenterVertically(this Window window, Action<double> setTop = null, Screen screen = null)
-    {
-
-        if (window != null)
-            return;
-
-        setTop ??= (value) => window.Top = value;
-        screen ??= Screen.FromWindowHandle(new WindowInteropHelper(window).EnsureHandle());
-        setTop?.Invoke(screen.WorkArea.Y + (screen.WorkArea.Height / 2) - (window.ActualHeight / 2));
-
-    }
-
-    /// <summary>Center window horizontally on the users desktop.</summary>
-    public static void CenterHorizontally(this Window window, Action<double> setLeft = null, Screen screen = null)
-    {
-
-        if (window != null)
-            return;
-
-        setLeft ??= (value) => window.Left = value;
-        screen ??= Screen.FromWindowHandle(new WindowInteropHelper(window).EnsureHandle());
-        setLeft?.Invoke(screen.WorkArea.X + (screen.WorkArea.Width / 2) - (window.ActualWidth / 2));
-
-    }
-
-    #endregion
     #region Hide from alt-tab
 
     public static bool GetIsVisibleInAltTab(Window window) => (bool)window.GetValue(IsVisibleInAltTabProperty);
     public static void SetIsVisibleInAltTab(Window window, bool value) => window.SetValue(IsVisibleInAltTabProperty, value);
 
     public static readonly DependencyProperty IsVisibleInAltTabProperty =
-        DependencyProperty.RegisterAttached("IsVisibleInAltTab", typeof(bool), typeof(WindowExtensions), new PropertyMetadata(true, IsVisibleInAltTabChanged));
+        DependencyProperty.RegisterAttached("IsVisibleInAltTab", typeof(bool), typeof(Common), new PropertyMetadata(true, IsVisibleInAltTabChanged));
 
     static void IsVisibleInAltTabChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {
@@ -452,6 +404,27 @@ public static class WindowExtensions
     static extern void SetLastError(int dwErrorCode);
 
     #endregion
+    #region Rect
+
+    public static Rect GetRect(DependencyObject obj) => (Rect)obj.GetValue(RectProperty);
+    public static void SetRect(DependencyObject obj, Rect value) => obj.SetValue(RectProperty, value);
+
+    public static readonly DependencyProperty RectProperty =
+        DependencyProperty.RegisterAttached("Rect", typeof(Rect), typeof(Common), new PropertyMetadata(default(Rect), OnRectChanged));
+
+    static void OnRectChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    {
+
+        if (sender is not Window window || e.NewValue is not Rect rect)
+            return;
+
+        window.Left = rect.Left;
+        window.Top = rect.Top;
+        window.Width = rect.Width;
+        window.Height = rect.Height;
+
+    }
+
+    #endregion
 
 }
-

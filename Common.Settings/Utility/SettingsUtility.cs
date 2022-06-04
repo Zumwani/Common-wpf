@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Windows;
 using RectConverter = Common.Settings.Utility.RectJsonConverter;
 
-namespace Common.Settings;
+namespace Common.Settings.Utility;
 
 /// <summary>Provides utility methods relating to settings.</summary>
 public static class SettingsUtility
@@ -85,7 +85,7 @@ public static class SettingsUtility
     public static void Save(bool delay = true)
     {
         foreach (var setting in Enumerate())
-            Save(setting, delay);
+            setting.Save(delay);
     }
 
     #endregion
@@ -137,7 +137,7 @@ public static class SettingsUtility
                 value = JsonSerializer.Deserialize<T>(json, SerializerOptions);
                 return value is not null;
             }
-            catch (JsonException e)
+            catch (JsonException)
             {
                 if (ThrowOnDeserializationErrors)
                     throw;

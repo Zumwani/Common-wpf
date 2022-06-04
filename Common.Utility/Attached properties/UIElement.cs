@@ -1,8 +1,8 @@
 ﻿using System.Windows;
 
-namespace Common.Ext;
+namespace Common.Utility;
 
-public static class Ext
+public static partial class Common
 {
 
     #region IsVisible
@@ -11,7 +11,7 @@ public static class Ext
     public static void SetIsVisible(UIElement obj, bool? value) => obj.SetValue(IsVisibleProperty, value);
 
     public static readonly DependencyProperty IsVisibleProperty =
-        DependencyProperty.RegisterAttached("IsVisible", typeof(bool?), typeof(Ext), new PropertyMetadata(null, OnIsVisibleChanged));
+        DependencyProperty.RegisterAttached("IsVisible", typeof(bool?), typeof(Common), new PropertyMetadata(null, OnIsVisibleChanged));
 
     static void OnIsVisibleChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {
@@ -33,7 +33,7 @@ public static class Ext
     public static void SetIsCollapsed(UIElement obj, bool? value) => obj.SetValue(IsCollapsedProperty, value);
 
     public static readonly DependencyProperty IsCollapsedProperty =
-        DependencyProperty.RegisterAttached("IsCollapsed", typeof(bool?), typeof(Ext), new PropertyMetadata(null, OnIsCollapsedChanged));
+        DependencyProperty.RegisterAttached("IsCollapsed", typeof(bool?), typeof(Common), new PropertyMetadata(null, OnIsCollapsedChanged));
 
     static void OnIsCollapsedChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {
@@ -55,7 +55,7 @@ public static class Ext
     public static void SetIsHidden(UIElement obj, bool? value) => obj.SetValue(IsHiddenProperty, value);
 
     public static readonly DependencyProperty IsHiddenProperty =
-        DependencyProperty.RegisterAttached("IsHidden", typeof(bool?), typeof(Ext), new PropertyMetadata(null, OnIsHiddenChanged));
+        DependencyProperty.RegisterAttached("IsHidden", typeof(bool?), typeof(Common), new PropertyMetadata(null, OnIsHiddenChanged));
 
     static void OnIsHiddenChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {

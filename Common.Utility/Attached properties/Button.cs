@@ -3,9 +3,10 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
-namespace Common.Utility;
+namespace Common.Utility.Utility;
 
-public static class ButtonUtility
+/// <summary>Provides attached properties for use in xaml.</summary>
+public static partial class Common
 {
 
     #region ContextMenuOnLeftClick
@@ -17,7 +18,7 @@ public static class ButtonUtility
         obj.SetValue(ContextMenuOnLeftClickProperty, value);
 
     public static readonly DependencyProperty ContextMenuOnLeftClickProperty =
-        DependencyProperty.RegisterAttached("ContextMenuOnLeftClick", typeof(bool), typeof(ButtonUtility), new PropertyMetadata(false, OnContextMenuOnLeftClickChanged));
+        DependencyProperty.RegisterAttached("ContextMenuOnLeftClick", typeof(bool), typeof(Common), new PropertyMetadata(false, OnContextMenuOnLeftClickChanged));
 
     static void OnContextMenuOnLeftClickChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {
@@ -68,7 +69,7 @@ public static class ButtonUtility
         if (e.ChangedButton != MouseButton.Left)
             return;
 
-        if (sender is not ButtonBase button || button != ButtonUtility.button)
+        if (sender is not ButtonBase button || button != Common.button)
             return;
 
         if (button.ContextMenu is null)
@@ -88,12 +89,12 @@ public static class ButtonUtility
             if (button.ContextMenu.Placement is PlacementMode.Top or PlacementMode.Bottom)
             {
                 await Task.Delay(10);
-                button.ContextMenu.HorizontalOffset = (button.ActualWidth / 2) - (button.ContextMenu.ActualWidth / 2);
+                button.ContextMenu.HorizontalOffset = button.ActualWidth / 2 - button.ContextMenu.ActualWidth / 2;
             }
             else if (button.ContextMenu.Placement is PlacementMode.Left or PlacementMode.Right)
             {
                 await Task.Delay(10);
-                button.ContextMenu.VerticalOffset = (button.ActualHeight / 2) - (button.ContextMenu.ActualHeight / 2);
+                button.ContextMenu.VerticalOffset = button.ActualHeight / 2 - button.ContextMenu.ActualHeight / 2;
             }
         }
 
@@ -125,7 +126,7 @@ public static class ButtonUtility
         obj.SetValue(CenterContextMenuProperty, value);
 
     public static readonly DependencyProperty CenterContextMenuProperty =
-        DependencyProperty.RegisterAttached("CenterContextMenu", typeof(bool), typeof(ButtonUtility), new PropertyMetadata(false));
+        DependencyProperty.RegisterAttached("CenterContextMenu", typeof(bool), typeof(Common), new PropertyMetadata(false));
 
     #endregion
     #region IsMouseDown property
@@ -137,7 +138,7 @@ public static class ButtonUtility
         obj.SetValue(IsMouseLeftDownProperty, value);
 
     public static readonly DependencyProperty IsMouseLeftDownProperty =
-        DependencyProperty.RegisterAttached("IsMouseLeftDown", typeof(bool), typeof(ButtonUtility), new PropertyMetadata(false));
+        DependencyProperty.RegisterAttached("IsMouseLeftDown", typeof(bool), typeof(Common), new PropertyMetadata(false));
 
     public static bool GetEnableIsMouseDown(DependencyObject obj) =>
         (bool)obj.GetValue(EnableIsMouseDownProperty);
@@ -146,7 +147,7 @@ public static class ButtonUtility
         obj.SetValue(EnableIsMouseDownProperty, value);
 
     public static readonly DependencyProperty EnableIsMouseDownProperty =
-        DependencyProperty.RegisterAttached("EnableIsMouseDown", typeof(bool), typeof(ButtonUtility), new PropertyMetadata(false, OnEnableIsMouseLeftDownPropertyChanged));
+        DependencyProperty.RegisterAttached("EnableIsMouseDown", typeof(bool), typeof(Common), new PropertyMetadata(false, OnEnableIsMouseLeftDownPropertyChanged));
 
     static void OnEnableIsMouseLeftDownPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {
