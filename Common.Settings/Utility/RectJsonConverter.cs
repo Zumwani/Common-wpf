@@ -17,6 +17,9 @@ public class RectJsonConverter : JsonConverter<Rect>
     public override Rect Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
 
+        if (reader.TokenType != JsonTokenType.StartObject)
+            throw new JsonException("JSON payload expected to start with StartObject token.");
+
         var left = double.NaN;
         var top = double.NaN;
         var width = double.NaN;
@@ -24,6 +27,13 @@ public class RectJsonConverter : JsonConverter<Rect>
 
         var property = "";
         while (reader.Read())
+        {
+
+            if (reader.TokenType == JsonTokenType.EndObject)
+                return double.IsNaN(left) || double.IsNaN(top) || double.IsNaN(width) || double.IsNaN(height)
+                ? default
+                : (new(left, top, width, height));
+
             if (reader.TokenType == JsonTokenType.PropertyName)
                 property = reader.GetString();
             else if (reader.TokenType == JsonTokenType.Number)
@@ -33,10 +43,9 @@ public class RectJsonConverter : JsonConverter<Rect>
                 else if (property == nameof(Rect.Width)) width = reader.GetDouble();
                 else if (property == nameof(Rect.Height)) height = reader.GetDouble();
             }
+        }
 
-        return double.IsNaN(left) || double.IsNaN(top) || double.IsNaN(width) || double.IsNaN(height)
-            ? default
-            : (new(left, top, width, height));
+        throw new JsonException();
 
     }
 

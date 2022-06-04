@@ -115,7 +115,6 @@ public static class WindowExtensions
         var screen = Screen.FromWindowHandle(new WindowInteropHelper(window).Handle);
         var rect = clampTo == ClampToScreenOption.WorkArea ? screen.WorkArea : screen.Bounds;
 
-        //TODO: Does this override bindings?
         if (window.Left < rect.Left) window.Left = rect.Left;
         if (window.Top < rect.Top) window.Top = rect.Top;
         if (window.Left + window.ActualWidth > rect.Right) window.Width = rect.Right - window.Left;

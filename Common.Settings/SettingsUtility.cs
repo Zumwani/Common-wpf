@@ -137,7 +137,7 @@ public static class SettingsUtility
                 value = JsonSerializer.Deserialize<T>(json, SerializerOptions);
                 return value is not null;
             }
-            catch (JsonException)
+            catch (JsonException e)
             {
                 if (ThrowOnDeserializationErrors)
                     throw;
