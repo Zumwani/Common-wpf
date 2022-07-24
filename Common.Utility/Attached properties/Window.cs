@@ -1,6 +1,7 @@
 ﻿using ShellUtility.Screens;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -423,6 +424,83 @@ public static partial class Common
         window.Width = rect.Width;
         window.Height = rect.Height;
 
+    }
+
+    #endregion
+    #region Pin to desktop
+
+    #region Pinvoke
+
+    const uint SWP_NOSIZE = 0x0001;
+    const uint SWP_NOMOVE = 0x0002;
+    const uint SWP_NOACTIVATE = 0x0010;
+
+    const int WM_SETFOCUS = 0x0007;
+
+    static readonly IntPtr HWND_BOTTOM = new(1);
+
+    [DllImport("user32.dll")]
+    static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+    #endregion
+
+    public static readonly DependencyProperty PinToDesktopProperty = DependencyProperty.RegisterAttached("PinToDesktop", typeof(bool), typeof(Common), new UIPropertyMetadata(false, OnPinToDesktopChanged));
+
+    public static bool GetPinToDesktop(Window window) => (bool)window.GetValue(PinToDesktopProperty);
+    public static void SetPinToDesktop(Window window, bool value) => window.SetValue(PinToDesktopProperty, value);
+
+    static void OnPinToDesktopChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+
+        if (sender is not Window window)
+            return;
+
+        IntPtr? handle = null;
+        HwndSource? source = null;
+
+        window.Loaded -= OnLoaded;
+        window.Closing -= OnClosing;
+
+        if ((bool)e.NewValue)
+        {
+            window.Loaded += OnLoaded;
+            window.Closing += OnClosing;
+        }
+
+        void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            handle = window.Handle();
+            source = HwndSource.FromHwnd(handle.Value);
+            SetZPos();
+            source.AddHook(WndProc);
+        }
+
+        void OnClosing(object? sender, CancelEventArgs e)
+        {
+            source?.RemoveHook(WndProc);
+            source = null;
+            window.Loaded -= OnLoaded;
+            window.Closing -= OnClosing;
+        }
+
+        IntPtr WndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+
+            if (msg == WM_SETFOCUS)
+            {
+                SetZPos();
+                handled = true;
+            }
+
+            return IntPtr.Zero;
+
+        }
+
+        void SetZPos()
+        {
+            if (handle.HasValue)
+                _ = SetWindowPos(handle.Value, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+        }
     }
 
     #endregion
