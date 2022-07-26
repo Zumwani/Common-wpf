@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 using System.Windows;
 
-namespace Common.Settings.Utility;
+namespace Common.Settings.JsonConverters;
 
 /// <summary>
 /// <para>Ensures that only the following properties are serialized for <see cref="Rect"/>:</para>
@@ -11,10 +11,17 @@ namespace Common.Settings.Utility;
 /// <para><see cref="Rect.Width"/></para>
 /// <para><see cref="Rect.Height"/></para>
 /// </summary>
-public class RectJsonConverter : JsonConverter<Rect>
+public class RectJsonConverter : JsonConverter<Rect?>
 {
 
-    public override Rect Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public class NonNullable : JsonConverter<Rect>
+    {
+        static readonly RectJsonConverter converter = new();
+        public override Rect Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => converter.Read(ref reader, typeToConvert, options) ?? default;
+        public override void Write(Utf8JsonWriter writer, Rect value, JsonSerializerOptions options) => converter.Write(writer, value, options);
+    }
+
+    public override Rect? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
 
         if (reader.TokenType != JsonTokenType.StartObject)
@@ -49,7 +56,7 @@ public class RectJsonConverter : JsonConverter<Rect>
 
     }
 
-    public override void Write(Utf8JsonWriter writer, Rect value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, Rect? value, JsonSerializerOptions options)
     {
 
         writer.WriteStartObject();

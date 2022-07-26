@@ -1,15 +1,18 @@
 ﻿using System.Windows;
 
-namespace Common.Settings.Utility;
+namespace Common.Settings.Utility.AttachedProperties;
 
-public static class WindowUtility
+/// <summary>Attached properties accessible from 'Common' xaml namespace.</summary>
+public static partial class Common
 {
+
+    #region Save Position
 
     public static bool GetSavePosition(Window window) => (bool)window.GetValue(SavePositionProperty);
     public static void SetSavePosition(Window window, bool value) => window.SetValue(SavePositionProperty, value);
 
     public static readonly DependencyProperty SavePositionProperty =
-        DependencyProperty.RegisterAttached("SavePosition", typeof(bool), typeof(WindowUtility), new PropertyMetadata(false, OnSavePositionChanged));
+        DependencyProperty.RegisterAttached("SavePosition", typeof(bool), typeof(Common), new PropertyMetadata(false, OnSavePositionChanged));
 
     static readonly List<Type> list = new();
 
@@ -97,5 +100,7 @@ public static class WindowUtility
         if (window.IsLoaded)
             SettingsUtility.Save(name, new Rect(window.Left, window.Top, window.ActualWidth, window.ActualHeight), delay);
     }
+
+    #endregion
 
 }

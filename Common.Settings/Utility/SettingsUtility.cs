@@ -1,10 +1,11 @@
 ﻿using Common.Settings.Internal;
+using Common.Settings.JsonConverters;
 using Microsoft.Win32;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
-using RectConverter = Common.Settings.Utility.RectJsonConverter;
 
 namespace Common.Settings.Utility;
 
@@ -32,7 +33,7 @@ public static class SettingsUtility
 
     static SettingsUtility()
     {
-        SerializerOptions.Converters.Add(new RectConverter());
+        EnableDefaultConverters();
         if (Application.Current is Application app)
             app.Exit += (s, e) => { if (PerformPendingWritesOnShutdown) SavePending(); };
     }
@@ -193,7 +194,38 @@ public static class SettingsUtility
     #endregion
     #region JsonConverters
 
+    /// <summary>The <see cref="JsonSerializerOptions"/> to use when serializing.</summary>
     public static JsonSerializerOptions SerializerOptions { get; } = new();
+
+    /// <summary>Gets if a default converter is enabled.</summary>
+    public static bool IsDefaultConverterEnabled<T>() where T : JsonConverter, new() =>
+        SerializerOptions.Converters.OfType<T>().Any();
+
+    /// <summary>Enables a default converter.</summary>
+    /// <param name="isEnabled">Determines whatever the converter should be enabled. Setting to <see langword="false"/> has same effect as <see cref="DisableDefaultConverter{T}"/>.</param>
+    public static void EnableDefaultConverter<T>(bool isEnabled = true) where T : JsonConverter, new()
+    {
+        _ = SerializerOptions.Converters.Remove(SerializerOptions.GetConverter(typeof(T)));
+        if (isEnabled)
+            SerializerOptions.Converters.Add(new T());
+    }
+
+    /// <summary>Disables a default converter.</summary>
+    public static void DisableDefaultConverter<T>() where T : JsonConverter, new() =>
+        EnableDefaultConverter<T>(isEnabled: false);
+
+    static void EnableDefaultConverters()
+    {
+
+        EnableDefaultConverter<RectJsonConverter>();
+        EnableDefaultConverter<BitmapSourceJsonConverter>();
+        EnableDefaultConverter<IntPtrJsonConverter>();
+
+        EnableDefaultConverter<RectJsonConverter.NonNullable>();
+        EnableDefaultConverter<BitmapSourceJsonConverter.NonNullable>();
+        EnableDefaultConverter<IntPtrJsonConverter.NonNullable>();
+
+    }
 
     #endregion
 

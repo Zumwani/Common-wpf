@@ -7,13 +7,14 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 
-namespace Common.Utility;
+namespace Common.AttachedProperties;
 
 public enum ClampToScreenOption
 {
     None, Screen, WorkArea
 }
 
+/// <summary>Attached properties accessible from 'Common' xaml namespace.</summary>
 public static partial class Common
 {
 

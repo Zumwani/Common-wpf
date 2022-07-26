@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
-namespace Common.Utility.Utility;
+namespace Common.AttachedProperties;
 
 /// <summary>Provides attached properties for use in xaml.</summary>
 public static partial class Common
