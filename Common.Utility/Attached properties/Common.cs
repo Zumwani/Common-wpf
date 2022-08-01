@@ -26,7 +26,7 @@ public enum ClampToScreenOption
 public static class Common
 {
 
-    #region Button
+    #region ButtonBase
 
     #region ContextMenuOnLeftClick
 
@@ -136,18 +136,22 @@ public static class Common
     }
 
     #endregion
-    #region Center
+    #region CenterContextMenu
 
-    public static bool GetCenterContextMenu(DependencyObject obj) =>
+    public static bool GetCenterContextMenu(ButtonBase obj) =>
         (bool)obj.GetValue(CenterContextMenuProperty);
 
-    public static void SetCenterContextMenu(DependencyObject obj, bool value) =>
+    public static void SetCenterContextMenu(ButtonBase obj, bool value) =>
         obj.SetValue(CenterContextMenuProperty, value);
 
     public static readonly DependencyProperty CenterContextMenuProperty =
         DependencyProperty.RegisterAttached("CenterContextMenu", typeof(bool), typeof(Common), new PropertyMetadata(false));
 
     #endregion
+
+    #endregion
+    #region UIElement
+
     #region IsMouseDown property
 
     public static bool GetIsMouseLeftDown(UIElement obj) =>
@@ -197,10 +201,6 @@ public static class Common
         SetIsMouseLeftDown((UIElement)sender, false);
 
     #endregion
-
-    #endregion
-    #region UIElement
-
     #region IsVisible
 
     public static bool? GetIsVisible(UIElement obj) => (bool?)obj.GetValue(IsVisibleProperty);
@@ -328,11 +328,11 @@ public static class Common
 
     #region IsResizing
 
-    public static bool GetIsResizing(DependencyObject obj) => (bool)obj.GetValue(IsResizingProperty);
-    public static void SetIsResizing(DependencyObject obj, bool value) => obj.SetValue(IsResizingProperty, value);
+    public static bool GetIsResizing(Window obj) => (bool)obj.GetValue(IsResizingProperty);
+    public static void SetIsResizing(Window obj, bool value) => obj.SetValue(IsResizingProperty, value);
 
-    public static bool GetIsMoving(DependencyObject obj) => (bool)obj.GetValue(IsMovingProperty);
-    public static void SetIsMoving(DependencyObject obj, bool value) => obj.SetValue(IsMovingProperty, value);
+    public static bool GetIsMoving(Window obj) => (bool)obj.GetValue(IsMovingProperty);
+    public static void SetIsMoving(Window obj, bool value) => obj.SetValue(IsMovingProperty, value);
 
     public static readonly DependencyProperty IsResizingProperty =
         DependencyProperty.RegisterAttached("IsResizing", typeof(bool), typeof(Common), new PropertyMetadata(null));
@@ -343,8 +343,8 @@ public static class Common
     #endregion
     #region ClampToMonitors
 
-    public static ClampToScreenOption GetClampToMonitors(DependencyObject obj) => (ClampToScreenOption)obj.GetValue(ClampToMonitorsProperty);
-    public static void SetClampToMonitors(DependencyObject obj, ClampToScreenOption value) => obj.SetValue(ClampToMonitorsProperty, value);
+    public static ClampToScreenOption GetClampToMonitors(Window obj) => (ClampToScreenOption)obj.GetValue(ClampToMonitorsProperty);
+    public static void SetClampToMonitors(Window obj, ClampToScreenOption value) => obj.SetValue(ClampToMonitorsProperty, value);
 
     public static readonly DependencyProperty ClampToMonitorsProperty =
         DependencyProperty.RegisterAttached("ClampToMonitors", typeof(ClampToScreenOption), typeof(Common), new PropertyMetadata(ClampToScreenOption.None, OnClampToMonitorsChanged));
@@ -721,8 +721,8 @@ public static class Common
     #endregion
     #region Rect
 
-    public static Rect GetRect(DependencyObject obj) => (Rect)obj.GetValue(RectProperty);
-    public static void SetRect(DependencyObject obj, Rect value) => obj.SetValue(RectProperty, value);
+    public static Rect GetRect(Window obj) => (Rect)obj.GetValue(RectProperty);
+    public static void SetRect(Window obj, Rect value) => obj.SetValue(RectProperty, value);
 
     public static readonly DependencyProperty RectProperty =
         DependencyProperty.RegisterAttached("Rect", typeof(Rect), typeof(Common), new PropertyMetadata(default(Rect), OnRectChanged));
@@ -743,8 +743,8 @@ public static class Common
     #endregion
     #region Location
 
-    public static Point GetLocation(DependencyObject obj) => (Point)obj.GetValue(LocationProperty);
-    public static void SetLocation(DependencyObject obj, Point value) => obj.SetValue(LocationProperty, value);
+    public static Point GetLocation(Window obj) => (Point)obj.GetValue(LocationProperty);
+    public static void SetLocation(Window obj, Point value) => obj.SetValue(LocationProperty, value);
 
     public static readonly DependencyProperty LocationProperty =
         DependencyProperty.RegisterAttached("Location", typeof(Point), typeof(Common), new PropertyMetadata(default(Point), OnLocationChanged));
@@ -763,8 +763,8 @@ public static class Common
     #endregion
     #region Size
 
-    public static Size GetSize(DependencyObject obj) => (Size)obj.GetValue(SizeProperty);
-    public static void SetSize(DependencyObject obj, Size value) => obj.SetValue(SizeProperty, value);
+    public static Size GetSize(Window obj) => (Size)obj.GetValue(SizeProperty);
+    public static void SetSize(Window obj, Size value) => obj.SetValue(SizeProperty, value);
 
     public static readonly DependencyProperty SizeProperty =
         DependencyProperty.RegisterAttached("Size", typeof(Size), typeof(Common), new PropertyMetadata(default(Size), OnSizeChanged));
