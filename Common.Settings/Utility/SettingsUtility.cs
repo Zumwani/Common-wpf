@@ -124,7 +124,8 @@ public static class SettingsUtility
         key.SetValue(name, JsonSerializer.Serialize(value, SerializerOptions));
     }
 
-    internal static bool Read<T>(string name, [NotNullWhen(true)] out T? value)
+    /// <summary>Reads value directly from registry.</summary>
+    public static bool Read<T>(string name, [NotNullWhen(true)] out T? value)
     {
 
         value = default;

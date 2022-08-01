@@ -1,9 +1,11 @@
-﻿using Common.Utility;
-using ShellUtility.Screens;
+﻿using ShellUtility.Screens;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,15 +15,15 @@ using System.Windows.Interop;
 using System.Windows.Markup;
 using System.Windows.Media.Animation;
 
-[assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "Common.AttachedProperties")]
-namespace Common.AttachedProperties;
+[assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "Common.Utility.AttachedProperties")]
+namespace Common.Utility.AttachedProperties;
 
 public enum ClampToScreenOption
 {
     None, Screen, WorkArea
 }
 
-public static partial class Common
+public static class Common
 {
 
     #region Button
@@ -324,7 +326,7 @@ public static partial class Common
     #endregion
     #region Window
 
-    #region Is resizing
+    #region IsResizing
 
     public static bool GetIsResizing(DependencyObject obj) => (bool)obj.GetValue(IsResizingProperty);
     public static void SetIsResizing(DependencyObject obj, bool value) => obj.SetValue(IsResizingProperty, value);
@@ -339,7 +341,7 @@ public static partial class Common
         DependencyProperty.RegisterAttached("IsMoving", typeof(bool), typeof(Common), new PropertyMetadata(false));
 
     #endregion
-    #region Clamp to screens
+    #region ClampToMonitors
 
     public static ClampToScreenOption GetClampToMonitors(DependencyObject obj) => (ClampToScreenOption)obj.GetValue(ClampToMonitorsProperty);
     public static void SetClampToMonitors(DependencyObject obj, ClampToScreenOption value) => obj.SetValue(ClampToMonitorsProperty, value);
@@ -658,7 +660,7 @@ public static partial class Common
     }
 
     #endregion
-    #region Hide from alt-tab
+    #region IsVisibleInAltTab
 
     public static bool GetIsVisibleInAltTab(Window window) => (bool)window.GetValue(IsVisibleInAltTabProperty);
     public static void SetIsVisibleInAltTab(Window window, bool value) => window.SetValue(IsVisibleInAltTabProperty, value);
@@ -669,27 +671,28 @@ public static partial class Common
     static void IsVisibleInAltTabChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {
 
-        if (sender is Window window)
+        if (sender is not Window window)
+            return;
+
+        if (!window.IsLoaded)
+            window.Loaded += Window_Loaded;
+        else
+            Window_Loaded();
+
+        void Window_Loaded(object? _ = null, RoutedEventArgs? __ = null)
         {
 
-            window.Loaded += Window_Loaded;
+            window.Loaded -= Window_Loaded;
 
-            void Window_Loaded(object _, RoutedEventArgs _1)
-            {
+            var handle = new WindowInteropHelper(window).Handle;
+            var exStyle = (ExtendedWindowStyles)GetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE);
 
-                window.Loaded -= Window_Loaded;
+            if ((bool)e.NewValue)
+                exStyle &= ~ExtendedWindowStyles.WS_EX_TOOLWINDOW;
+            else
+                exStyle |= ExtendedWindowStyles.WS_EX_TOOLWINDOW;
 
-                var handle = new WindowInteropHelper(window).Handle;
-                var exStyle = (ExtendedWindowStyles)GetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE);
-
-                if ((bool)e.NewValue)
-                    exStyle &= ~ExtendedWindowStyles.WS_EX_TOOLWINDOW;
-                else
-                    exStyle |= ExtendedWindowStyles.WS_EX_TOOLWINDOW;
-
-                _ = SetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE, (IntPtr)exStyle);
-
-            }
+            _ = SetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE, (IntPtr)exStyle);
 
         }
 
@@ -734,6 +737,46 @@ public static partial class Common
         window.Top = rect.Top;
         window.Width = rect.Width;
         window.Height = rect.Height;
+
+    }
+
+    #endregion
+    #region Location
+
+    public static Point GetLocation(DependencyObject obj) => (Point)obj.GetValue(LocationProperty);
+    public static void SetLocation(DependencyObject obj, Point value) => obj.SetValue(LocationProperty, value);
+
+    public static readonly DependencyProperty LocationProperty =
+        DependencyProperty.RegisterAttached("Location", typeof(Point), typeof(Common), new PropertyMetadata(default(Point), OnLocationChanged));
+
+    static void OnLocationChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    {
+
+        if (sender is not Window window || e.NewValue is not Point point)
+            return;
+
+        window.Left = point.X;
+        window.Top = point.Y;
+
+    }
+
+    #endregion
+    #region Size
+
+    public static Size GetSize(DependencyObject obj) => (Size)obj.GetValue(SizeProperty);
+    public static void SetSize(DependencyObject obj, Size value) => obj.SetValue(SizeProperty, value);
+
+    public static readonly DependencyProperty SizeProperty =
+        DependencyProperty.RegisterAttached("Size", typeof(Size), typeof(Common), new PropertyMetadata(default(Size), OnSizeChanged));
+
+    static void OnSizeChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    {
+
+        if (sender is not Window window || e.NewValue is not Size Size)
+            return;
+
+        window.Width = Size.Width;
+        window.Height = Size.Height;
 
     }
 
@@ -813,6 +856,143 @@ public static partial class Common
                 _ = SetWindowPos(handle.Value, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
         }
     }
+
+    #endregion
+    #region Save Position
+
+    public static bool GetSavePosition(Window window) => (bool)window.GetValue(SavePositionProperty);
+    public static void SetSavePosition(Window window, bool value) => window.SetValue(SavePositionProperty, value);
+
+    public static readonly DependencyProperty SavePositionProperty =
+        DependencyProperty.RegisterAttached("SavePosition", typeof(bool), typeof(Common), new PropertyMetadata(false, OnSavePositionChanged));
+
+    static readonly List<Type> list = new();
+
+    static void OnSavePositionChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    {
+
+        if (sender is not Window window)
+            return;
+
+        var name = window.GetType().FullName ?? throw new NullReferenceException("Window.GetType().Fullname is null.");
+
+        window.LocationChanged -= Window_LocationChanged;
+        window.SizeChanged -= Window_SizeChanged;
+        window.Closed -= Window_Closed;
+
+        if (list.Contains(window.GetType()) && (bool)e.NewValue)
+            throw new InvalidOperationException("Cannot register multiple instances of same window type.");
+
+        if ((bool)e.NewValue)
+        {
+            list.Add(window.GetType());
+            Load(window, name);
+            window.LocationChanged += Window_LocationChanged;
+            window.SizeChanged += Window_SizeChanged;
+            window.Closed += Window_Closed;
+        }
+        else
+            _ = list.Remove(window.GetType());
+
+        void Window_SizeChanged(object sender, SizeChangedEventArgs e) =>
+            Save(window, name);
+
+        void Window_LocationChanged(object? sender, EventArgs e) =>
+            Save(window, name);
+
+        void Window_Closed(object? sender, EventArgs e)
+        {
+            _ = list.Remove(window.GetType());
+            window.LocationChanged -= Window_LocationChanged;
+            window.SizeChanged -= Window_SizeChanged;
+            window.Closed -= Window_Closed;
+            Save(window, name, delay: false);
+        }
+
+    }
+
+    static async void Load(Window window, string name)
+    {
+
+        if (SettingsUtility.Read<Rect>(name, out var rect))
+        {
+
+            window.Left = rect.Left;
+            window.Top = rect.Top;
+            window.Width = rect.Width;
+            window.Height = rect.Height;
+            window.Loaded += Window_Loaded;
+
+            void Window_Loaded(object sender, RoutedEventArgs e)
+            {
+                window.Loaded -= Window_Loaded;
+                window.Width = rect.Width;
+                window.Height = rect.Height;
+            }
+
+        }
+        else
+        {
+
+            while ((double.IsNaN(window.Width) && window.ActualWidth == 0) || (double.IsNaN(window.Height) && window.ActualHeight == 0))
+                await Task.Delay(100);
+
+            var w = window.ActualWidth != 0 ? window.ActualWidth : window.Width;
+            var h = window.ActualHeight != 0 ? window.ActualHeight : window.Height;
+
+            window.Left = (SystemParameters.PrimaryScreenWidth / 2) - (w / 2);
+            window.Top = (SystemParameters.PrimaryScreenHeight / 2) - (h / 2);
+
+        }
+
+    }
+
+    static void Save(Window window, string name, bool delay = true)
+    {
+        if (window.IsLoaded)
+            SettingsUtility.Save(name, new Rect(window.Left, window.Top, window.ActualWidth, window.ActualHeight), delay);
+    }
+
+    #region SettingsUtility
+
+    static class SettingsUtility
+    {
+
+        public static bool Read<T>(string name, [NotNullWhen(true)] out T? value)
+        {
+
+            var method = GetMethod().MakeGenericMethod(typeof(T));
+
+            var param = new object?[] { name, null };
+            var result = method.Invoke(null, param);
+
+            value = result is true
+                ? (T?)param[1]
+                : default;
+
+            return value is not null;
+
+        }
+
+        public static void Save(string key, object? value, bool delay = true) =>
+            _ = GetMethod().Invoke(null, new[] { key, value, delay });
+
+        static MethodInfo GetMethod([CallerMemberName] string name = "")
+        {
+
+            var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "Common.Settings");
+            var type = assembly?.GetType("Common.Settings.Utility.SettingsUtility");
+            var method = type?.GetMethod(name);
+
+            return method is not null
+                ? method
+                : throw new InvalidOperationException("Common-wpf.Settings must be installed in order to use 'Common.SavePosition'.");
+
+        }
+
+    }
+
+    #endregion
 
     #endregion
 
