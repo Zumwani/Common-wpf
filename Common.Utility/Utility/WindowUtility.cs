@@ -12,7 +12,7 @@ public static class WindowUtility
 
     /// <summary>Gets if this window is modal.</summary>
     public static bool IsModal(this Window window) =>
-        (bool)typeof(Window).GetField("_showingAsDialog", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(window);
+        (bool?)typeof(Window).GetField("_showingAsDialog", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(window) ?? false;
 
     /// <summary>Gets the win32 handle of this <see cref="Window"/>.</summary>
     public static IntPtr Handle(this Window window, bool ensureCreated = false) =>
@@ -23,7 +23,7 @@ public static class WindowUtility
     #region Location
 
     /// <summary>Center the window on the users desktop.</summary>
-    public static void Center(this Window window, Action<double> setLeft = null, Action<double> setTop = null, Screen screen = null)
+    public static void Center(this Window window, Action<double>? setLeft = null, Action<double>? setTop = null, Screen? screen = null)
     {
         screen ??= Screen.FromWindowHandle(new WindowInteropHelper(window).EnsureHandle());
         window?.CenterVertically(setTop, screen);
@@ -31,10 +31,10 @@ public static class WindowUtility
     }
 
     /// <summary>Center window vertically on the users desktop.</summary>
-    public static void CenterVertically(this Window window, Action<double> setTop = null, Screen screen = null)
+    public static void CenterVertically(this Window window, Action<double>? setTop = null, Screen? screen = null)
     {
 
-        if (window != null)
+        if (window is null)
             return;
 
         setTop ??= (value) => window.Top = value;
@@ -44,10 +44,10 @@ public static class WindowUtility
     }
 
     /// <summary>Center window horizontally on the users desktop.</summary>
-    public static void CenterHorizontally(this Window window, Action<double> setLeft = null, Screen screen = null)
+    public static void CenterHorizontally(this Window window, Action<double>? setLeft = null, Screen? screen = null)
     {
 
-        if (window != null)
+        if (window is null)
             return;
 
         setLeft ??= (value) => window.Left = value;

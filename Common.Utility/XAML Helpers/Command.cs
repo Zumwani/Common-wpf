@@ -7,7 +7,7 @@ namespace Common.Utility;
 public abstract class Command : MarkupExtension, ICommand
 {
 
-    public event EventHandler CanExecuteChanged;
+    public event EventHandler? CanExecuteChanged;
 
     /// <inheritdoc cref="ICommand.CanExecute(object?)"/>
     public virtual bool CanExecute() =>
@@ -16,10 +16,10 @@ public abstract class Command : MarkupExtension, ICommand
     /// <inheritdoc cref="ICommand.Execute(object?)"/>
     public abstract void Execute();
 
-    bool ICommand.CanExecute(object _) =>
+    bool ICommand.CanExecute(object? _) =>
         CanExecute();
 
-    void ICommand.Execute(object _) =>
+    void ICommand.Execute(object? _) =>
         Execute();
 
 }
@@ -28,28 +28,22 @@ public abstract class Command : MarkupExtension, ICommand
 public abstract class Command<T> : MarkupExtension, ICommand
 {
 
-    public event EventHandler CanExecuteChanged;
+    public event EventHandler? CanExecuteChanged;
 
     /// <inheritdoc cref="ICommand.CanExecute(object?)"/>
-    public virtual bool CanExecute(T parameter) =>
+    public virtual bool CanExecute(T? parameter) =>
         true;
 
     /// <inheritdoc cref="ICommand.Execute(object?)"/>
-    public abstract void Execute(T parameter);
+    public abstract void Execute(T? parameter);
 
-    bool ICommand.CanExecute(object parameter)
+    bool ICommand.CanExecute(object? parameter) =>
+        parameter is null or T && CanExecute((T?)parameter);
+
+    void ICommand.Execute(object? parameter)
     {
-
-        if (parameter is null || parameter is T)
-            return CanExecute((T)parameter);
-        return false;
-
-    }
-
-    void ICommand.Execute(object parameter)
-    {
-        if (parameter is null || parameter is T)
-            Execute((T)parameter);
+        if (parameter is null or T)
+            Execute((T?)parameter);
     }
 
 }

@@ -25,6 +25,18 @@ public class AppArguments
     public string[] Parameters { get; set; }
     public string AsString { get; set; }
 
+    public AppArguments(string[] parameters, string asString)
+    {
+        Parameters = parameters;
+        AsString = asString;
+    }
+
+    public AppArguments(params string[] parameters)
+    {
+        Parameters = parameters;
+        AsString = string.Join(" ", parameters);
+    }
+
 }
 
 /// <summary>Contains utility functions relating to <see cref="Application"/>.</summary>
@@ -44,10 +56,10 @@ public static class AppUtility
         static readonly FileVersionInfo FileVersionInfo = FileVersionInfo.GetVersionInfo(ExecutablePath);
 
         /// <summary>The publisher of this app.</summary>
-        public static string Publisher => FileVersionInfo.CompanyName;
+        public static string Publisher => FileVersionInfo?.CompanyName ?? throw new InvalidOperationException();
 
         /// <summary>The name of this app.</summary>
-        public static string Name => FileVersionInfo.ProductName;
+        public static string Name => FileVersionInfo?.ProductName ?? throw new InvalidOperationException();
 
         /// <summary>
         /// <para>The package name of this app.</para>
@@ -56,10 +68,10 @@ public static class AppUtility
         public static string PackageName => $"app.{Publisher}.{Name}";
 
         /// <summary>The version of this app.</summary>
-        public static string Version => FileVersionInfo.ProductVersion;
+        public static string Version => FileVersionInfo?.ProductVersion ?? throw new InvalidOperationException();
 
         /// <summary>The executable path of this app.</summary>
-        public static string ExecutablePath => Assembly.GetEntryAssembly().Location.Replace(".dll", ".exe");
+        public static string ExecutablePath => Assembly.GetEntryAssembly()?.Location?.Replace(".dll", ".exe") ?? throw new InvalidOperationException();
 
     }
 
@@ -72,23 +84,23 @@ public static class AppUtility
     public class AutoStartHelper : INotifyPropertyChanged
     {
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         /// <summary>Gets if auto start is enabled.</summary>
         public bool IsEnabled
         {
-            get => (string)Key.GetValue(Info.PackageName) == Info.ExecutablePath.Quotify();
+            get => (string?)Key?.GetValue(Info.PackageName) == Info.ExecutablePath.Quotify();
             set
             {
                 if (value)
-                    Key.SetValue(Info.PackageName, Info.ExecutablePath.Quotify());
+                    Key?.SetValue(Info.PackageName, Info.ExecutablePath.Quotify());
                 else
-                    Key.DeleteValue(Info.PackageName, throwOnMissingValue: false);
+                    Key?.DeleteValue(Info.PackageName, throwOnMissingValue: false);
                 PropertyChanged?.Invoke(this, new(nameof(IsEnabled)));
             }
         }
 
-        static RegistryKey Key =>
+        static RegistryKey? Key =>
             Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
         /// <summary>Enable auto start.</summary>
@@ -104,7 +116,7 @@ public static class AppUtility
 
     /// <summary>Gets if this instance is primary.</summary>
     /// <param name="mutexName">The name of the mutex, only has an effect if mutex is not already setup.</param>
-    public static bool IsPrimaryInstance(ParseArguments secondaryInstanceArgumentsHandler = null, bool handleIfPrimaryInstanceToo = true, string mutexName = null)
+    public static bool IsPrimaryInstance(ParseArguments? secondaryInstanceArgumentsHandler = null, bool handleIfPrimaryInstanceToo = true, string? mutexName = null)
     {
 
         if (mutex is null)
@@ -126,7 +138,7 @@ public static class AppUtility
 
     /// <summary>Gets if this instance is secondary.</summary>
     /// <param name="mutexName">The name of the mutex, only has an effect if mutex is not already setup.</param>
-    public static bool IsSecondaryInstance(ParseArguments secondaryInstanceArgumentsHandler = null, bool handleIfPrimaryInstanceToo = true, string mutexName = null)
+    public static bool IsSecondaryInstance(ParseArguments? secondaryInstanceArgumentsHandler = null, bool handleIfPrimaryInstanceToo = true, string? mutexName = null)
     {
 
         if (mutex is null)
@@ -149,7 +161,7 @@ public static class AppUtility
     /// <summary>Releases mutex (single instance token) and restarts the app.</summary>
     /// <param name="asAdmin">Adds 'runas' verb when restarting.</param>
     /// <param name="shutdownAction">The action to shutdown the app, defaults to <see cref="Application.Shutdown"/>, but can be overriden if necessary.</param>
-    public static void Restart(bool asAdmin = false, Action shutdownAction = null)
+    public static void Restart(bool asAdmin = false, Action? shutdownAction = null)
     {
 
         Release();
@@ -168,9 +180,9 @@ public static class AppUtility
         mutexIsOwnedByUs = false;
     }
 
-    static Mutex mutex;
+    static Mutex? mutex;
     static bool mutexIsOwnedByUs;
-    static void SetupMutex(string mutexName = null)
+    static void SetupMutex(string? mutexName = null)
     {
 
         mutexName ??= Info.PackageName;
@@ -215,7 +227,7 @@ public static class AppUtility
     #region Args
 
     /// <summary>Occurs when a secondary instance is started.</summary>
-    public static event ParseArguments SecondaryInstanceStarted;
+    public static event ParseArguments? SecondaryInstanceStarted;
     public delegate void ParseArguments(AppArguments arguments);
 
     /// <summary>Gets the arguments that was used to open this instance.</summary>
@@ -267,7 +279,7 @@ public static class AppUtility
                   server.WaitForConnection();
                   using var reader = new StreamReader(server);
                   var args = JsonSerializer.Deserialize<AppArguments>(reader.ReadToEnd());
-                  dispatcher.Invoke(() => SecondaryInstanceStarted?.Invoke(args));
+                  dispatcher.Invoke(() => SecondaryInstanceStarted?.Invoke(args ?? new()));
               }
 
               ListenForArgs();

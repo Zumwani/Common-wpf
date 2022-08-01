@@ -5,9 +5,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Markup;
+using System.Windows.Media.Animation;
 
+[assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "Common.AttachedProperties")]
 namespace Common.AttachedProperties;
 
 public enum ClampToScreenOption
@@ -15,9 +21,308 @@ public enum ClampToScreenOption
     None, Screen, WorkArea
 }
 
-/// <summary>Attached properties accessible from 'Common' xaml namespace.</summary>
 public static partial class Common
 {
+
+    #region Button
+
+    #region ContextMenuOnLeftClick
+
+    public static bool GetContextMenuOnLeftClick(ButtonBase obj) =>
+        (bool)obj.GetValue(ContextMenuOnLeftClickProperty);
+
+    public static void SetContextMenuOnLeftClick(ButtonBase obj, bool value) =>
+        obj.SetValue(ContextMenuOnLeftClickProperty, value);
+
+    public static readonly DependencyProperty ContextMenuOnLeftClickProperty =
+        DependencyProperty.RegisterAttached("ContextMenuOnLeftClick", typeof(bool), typeof(Common), new PropertyMetadata(false, OnContextMenuOnLeftClickChanged));
+
+    static void OnContextMenuOnLeftClickChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    {
+
+        if (sender is not ButtonBase toggle)
+            return;
+
+        toggle.PreviewMouseDown -= Toggle_PreviewMouseDown;
+        toggle.PreviewMouseUp -= Toggle_PreviewMouseUp;
+        toggle.MouseLeave -= Toggle_MouseLeave;
+
+        if ((bool)e.NewValue)
+        {
+            toggle.PreviewMouseDown += Toggle_PreviewMouseDown;
+            toggle.PreviewMouseUp += Toggle_PreviewMouseUp;
+            toggle.MouseLeave += Toggle_MouseLeave;
+        }
+
+    }
+
+    static ButtonBase? button;
+    static void Toggle_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+
+        if (e.ChangedButton == MouseButton.Right)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        if (sender is not ButtonBase toggle || e.ChangedButton != MouseButton.Left)
+            return;
+
+        button = toggle;
+        e.Handled = true;
+
+    }
+
+    static async void Toggle_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+    {
+
+        if (e.ChangedButton == MouseButton.Right)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        if (e.ChangedButton != MouseButton.Left)
+            return;
+
+        if (sender is not ButtonBase button || button != Common.button)
+            return;
+
+        if (button.ContextMenu is null)
+            return;
+
+        if (button is ToggleButton toggle)
+            toggle.IsChecked = true;
+
+        button.ContextMenu.Closed += ContextMenu_Closed;
+        button.IsHitTestVisible = false;
+        button.ContextMenu.DataContext = button.DataContext;
+        button.ContextMenu.PlacementTarget = button;
+        button.ContextMenu.IsOpen = true;
+
+        if (GetCenterContextMenu(button))
+        {
+            if (button.ContextMenu.Placement is PlacementMode.Top or PlacementMode.Bottom)
+            {
+                await Task.Delay(10);
+                button.ContextMenu.HorizontalOffset = button.ActualWidth / 2 - button.ContextMenu.ActualWidth / 2;
+            }
+            else if (button.ContextMenu.Placement is PlacementMode.Left or PlacementMode.Right)
+            {
+                await Task.Delay(10);
+                button.ContextMenu.VerticalOffset = button.ActualHeight / 2 - button.ContextMenu.ActualHeight / 2;
+            }
+        }
+
+        e.Handled = true;
+
+        void ContextMenu_Closed(object sender, RoutedEventArgs e)
+        {
+            button.ContextMenu.Closed -= ContextMenu_Closed;
+            button.IsHitTestVisible = true;
+            if (button is ToggleButton toggle)
+                toggle.IsChecked = false;
+        }
+
+    }
+
+    static void Toggle_MouseLeave(object sender, MouseEventArgs e)
+    {
+        if (sender is ButtonBase toggle && toggle == button)
+            button = null;
+    }
+
+    #endregion
+    #region Center
+
+    public static bool GetCenterContextMenu(DependencyObject obj) =>
+        (bool)obj.GetValue(CenterContextMenuProperty);
+
+    public static void SetCenterContextMenu(DependencyObject obj, bool value) =>
+        obj.SetValue(CenterContextMenuProperty, value);
+
+    public static readonly DependencyProperty CenterContextMenuProperty =
+        DependencyProperty.RegisterAttached("CenterContextMenu", typeof(bool), typeof(Common), new PropertyMetadata(false));
+
+    #endregion
+    #region IsMouseDown property
+
+    public static bool GetIsMouseLeftDown(UIElement obj) =>
+        (bool)obj.GetValue(IsMouseLeftDownProperty);
+
+    public static void SetIsMouseLeftDown(UIElement obj, bool value) =>
+        obj.SetValue(IsMouseLeftDownProperty, value);
+
+    public static readonly DependencyProperty IsMouseLeftDownProperty =
+        DependencyProperty.RegisterAttached("IsMouseLeftDown", typeof(bool), typeof(Common), new PropertyMetadata(false));
+
+    public static bool GetEnableIsMouseDown(DependencyObject obj) =>
+        (bool)obj.GetValue(EnableIsMouseDownProperty);
+
+    public static void SetEnableIsMouseDown(DependencyObject obj, bool value) =>
+        obj.SetValue(EnableIsMouseDownProperty, value);
+
+    public static readonly DependencyProperty EnableIsMouseDownProperty =
+        DependencyProperty.RegisterAttached("EnableIsMouseDown", typeof(bool), typeof(Common), new PropertyMetadata(false, OnEnableIsMouseLeftDownPropertyChanged));
+
+    static void OnEnableIsMouseLeftDownPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    {
+
+        if (sender is not UIElement button)
+            return;
+
+        button.PreviewMouseLeftButtonDown -= Button_MouseLeftButtonDown;
+        button.PreviewMouseLeftButtonUp -= Button_MouseLeftButtonUp;
+        button.MouseLeave -= Button_MouseLeave;
+
+        if ((bool)e.NewValue)
+        {
+            button.PreviewMouseLeftButtonDown += Button_MouseLeftButtonDown;
+            button.PreviewMouseLeftButtonUp += Button_MouseLeftButtonUp;
+            button.MouseLeave += Button_MouseLeave;
+        }
+
+    }
+
+    static void Button_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) =>
+        SetIsMouseLeftDown((UIElement)sender, true);
+
+    static void Button_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) =>
+        SetIsMouseLeftDown((UIElement)sender, false);
+
+    static void Button_MouseLeave(object sender, MouseEventArgs e) =>
+        SetIsMouseLeftDown((UIElement)sender, false);
+
+    #endregion
+
+    #endregion
+    #region UIElement
+
+    #region IsVisible
+
+    public static bool? GetIsVisible(UIElement obj) => (bool?)obj.GetValue(IsVisibleProperty);
+    public static void SetIsVisible(UIElement obj, bool? value) => obj.SetValue(IsVisibleProperty, value);
+
+    public static readonly DependencyProperty IsVisibleProperty =
+        DependencyProperty.RegisterAttached("IsVisible", typeof(bool?), typeof(Common), new PropertyMetadata(null, OnIsVisibleChanged));
+
+    static async void OnIsVisibleChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    {
+
+        if (sender is not UIElement element)
+            return;
+
+        if (e.NewValue is true)
+        {
+            await DoTransition(GetShowTransition(element), element as FrameworkElement);
+            element.Visibility = Visibility.Visible;
+        }
+        else if (e.NewValue is false)
+        {
+            await DoTransition(GetHideTransition(element), element as FrameworkElement);
+            element.Visibility = Visibility.Collapsed;
+        }
+
+    }
+
+    #endregion
+    #region IsCollapsed
+
+    public static bool? GetIsCollapsed(UIElement obj) => (bool?)obj.GetValue(IsCollapsedProperty);
+    public static void SetIsCollapsed(UIElement obj, bool? value) => obj.SetValue(IsCollapsedProperty, value);
+
+    public static readonly DependencyProperty IsCollapsedProperty =
+        DependencyProperty.RegisterAttached("IsCollapsed", typeof(bool?), typeof(Common), new PropertyMetadata(null, OnIsCollapsedChanged));
+
+    static async void OnIsCollapsedChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    {
+
+        if (sender is not UIElement element)
+            return;
+
+        if (e.NewValue is true)
+        {
+            await DoTransition(GetHideTransition(element), element as FrameworkElement);
+            element.Visibility = Visibility.Collapsed;
+        }
+        else if (e.NewValue is false)
+        {
+            await DoTransition(GetShowTransition(element), element as FrameworkElement);
+            element.Visibility = Visibility.Visible;
+        }
+
+    }
+
+    #endregion
+    #region IsHidden
+
+    public static bool? GetIsHidden(UIElement obj) => (bool?)obj.GetValue(IsHiddenProperty);
+    public static void SetIsHidden(UIElement obj, bool? value) => obj.SetValue(IsHiddenProperty, value);
+
+    public static readonly DependencyProperty IsHiddenProperty =
+        DependencyProperty.RegisterAttached("IsHidden", typeof(bool?), typeof(Common), new PropertyMetadata(null, OnIsHiddenChanged));
+
+    static async void OnIsHiddenChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    {
+
+        if (sender is not UIElement element)
+            return;
+
+        if (e.NewValue is true)
+        {
+            await DoTransition(GetHideTransition(element), element as FrameworkElement);
+            element.Visibility = Visibility.Hidden;
+        }
+        else if (e.NewValue is false)
+        {
+            await DoTransition(GetShowTransition(element), element as FrameworkElement);
+            element.Visibility = Visibility.Visible;
+        }
+
+    }
+
+    #endregion
+    #region Transitions
+
+    static Task DoTransition(Storyboard? storyboard, FrameworkElement? element)
+    {
+
+        if (storyboard is null || element is null)
+            return Task.CompletedTask;
+
+        var tcs = new TaskCompletionSource<bool>();
+        storyboard.Completed += Storyboard_Completed;
+        storyboard.RemoveRequested += Storyboard_Completed;
+        storyboard.Begin(element);
+
+        return tcs.Task;
+
+        void Storyboard_Completed(object? sender, EventArgs e)
+        {
+            storyboard.Completed -= Storyboard_Completed;
+            storyboard.RemoveRequested -= Storyboard_Completed;
+            tcs.SetResult(true);
+        }
+
+    }
+
+    public static Storyboard? GetShowTransition(UIElement obj) => (Storyboard?)obj.GetValue(ShowTransitionProperty);
+    public static void SetShowTransition(UIElement obj, Storyboard? value) => obj.SetValue(ShowTransitionProperty, value);
+
+    public static readonly DependencyProperty ShowTransitionProperty =
+        DependencyProperty.RegisterAttached("ShowTransition", typeof(Storyboard), typeof(Common), new PropertyMetadata(null));
+
+    public static Storyboard? GetHideTransition(UIElement obj) => (Storyboard?)obj.GetValue(HideTransitionProperty);
+    public static void SetHideTransition(UIElement obj, Storyboard? value) => obj.SetValue(HideTransitionProperty, value);
+
+    public static readonly DependencyProperty HideTransitionProperty =
+        DependencyProperty.RegisterAttached("HideTransition", typeof(Storyboard), typeof(Common), new PropertyMetadata(null));
+
+    #endregion
+
+    #endregion
+    #region Window
 
     #region Is resizing
 
@@ -79,7 +384,7 @@ public static partial class Common
         void Window_Unloaded(object sender, RoutedEventArgs e) =>
             SetClampToMonitors(window, ClampToScreenOption.None);
 
-        void UpdateClamp(object sender, EventArgs e)
+        void UpdateClamp(object? sender, EventArgs e)
         {
             if (window.IsLoaded)
                 EnsureClamped(window);
@@ -131,8 +436,8 @@ public static partial class Common
 
             _ = GetCursorPos(out var absoluteMousePos);
             var rect = Marshal.PtrToStructure<WIN32Rectangle>(lParam);
-            if (!relativeMousePos.HasValue)
-                relativeMousePos = new POINT(absoluteMousePos.X - rect.Left, absoluteMousePos.Y - rect.Top);
+            //if (!relativeMousePos.HasValue)
+            //    relativeMousePos = new POINT(absoluteMousePos.X - rect.Left, absoluteMousePos.Y - rect.Top);
 
             var screen = Screen.FromWindowHandle(hwnd);
             ClampToScreen(screen, ref handled);
@@ -142,6 +447,8 @@ public static partial class Common
 
             void ClampToScreen(Screen screen, ref bool handled)
             {
+
+                relativeMousePos ??= new(absoluteMousePos.X - rect.Left, absoluteMousePos.Y - rect.Top);
 
                 var bounds = GetClampToMonitors(clampedWindows[hwnd]) == ClampToScreenOption.WorkArea
                     ? screen.WorkArea
@@ -191,8 +498,8 @@ public static partial class Common
 
             _ = GetCursorPos(out var absoluteMousePos);
             var rect = Marshal.PtrToStructure<WIN32Rectangle>(lParam);
-            if (!relativeMousePos.HasValue)
-                relativeMousePos = new POINT(absoluteMousePos.X - rect.Left, absoluteMousePos.Y - rect.Top);
+            //if (!relativeMousePos.HasValue)
+            //    relativeMousePos = new POINT(absoluteMousePos.X - rect.Left, absoluteMousePos.Y - rect.Top);
 
             var screen = Screen.FromWindowHandle(hwnd);
             ClampToScreen(screen, ref handled);
@@ -202,6 +509,8 @@ public static partial class Common
 
             void ClampToScreen(Screen screen, ref bool handled)
             {
+
+                relativeMousePos ??= new(absoluteMousePos.X - rect.Left, absoluteMousePos.Y - rect.Top);
 
                 var bounds = GetClampToMonitors(clampedWindows[hwnd]) == ClampToScreenOption.WorkArea
                     ? screen.WorkArea
@@ -280,7 +589,7 @@ public static partial class Common
             Y = y;
         }
 
-        public static implicit operator System.Drawing.Point(POINT p) => new System.Drawing.Point(p.X, p.Y);
+        public static implicit operator System.Drawing.Point(POINT p) => new(p.X, p.Y);
         public static implicit operator POINT(System.Drawing.Point p) => new(p.X, p.Y);
 
     }
@@ -378,7 +687,7 @@ public static partial class Common
                 else
                     exStyle |= ExtendedWindowStyles.WS_EX_TOOLWINDOW;
 
-                SetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE, (IntPtr)exStyle);
+                _ = SetWindowLong(handle, GetWindowLongFields.GWL_EXSTYLE, (IntPtr)exStyle);
 
             }
 
@@ -507,4 +816,7 @@ public static partial class Common
 
     #endregion
 
+    #endregion
+
 }
+

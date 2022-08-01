@@ -232,7 +232,7 @@ public static class VisualStateUtility
     /// </code>
     /// </example>
     /// </summary>
-    public static BlockedEventHelper BlockEvent(FrameworkElement element, RoutedEvent e)
+    public static BlockedEventHelper? BlockEvent(FrameworkElement element, RoutedEvent e)
     {
 
         if (element is null)

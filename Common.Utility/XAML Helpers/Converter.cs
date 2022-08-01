@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Data;
@@ -8,10 +9,10 @@ namespace Common.Utility;
 static class ConverterUtility
 {
 
-    public static bool Convert<T>(object value, out T outValue, CultureInfo culture = null) =>
+    public static bool Convert<T>(object? value, out T? outValue, CultureInfo? culture = null) =>
         Convert<T, object>(value, null, out outValue, out _, culture, allowParamNull: true);
 
-    public static bool Convert<T, TParam>(object value, object param, out T outValue, out TParam outParam, CultureInfo culture = null, bool allowParamNull = true)
+    public static bool Convert<T, TParam>(object? value, object? param, out T? outValue, out TParam? outParam, CultureInfo? culture = null, bool allowParamNull = true)
     {
 
         culture ??= CultureInfo.InvariantCulture;
@@ -48,10 +49,10 @@ static class ConverterUtility
 
     }
 
-    public static bool Convert<T>(object[] value, out T[] outValue, CultureInfo culture = null) =>
+    public static bool Convert<T>(object[] value, out T?[]? outValue, CultureInfo? culture = null) =>
         Convert<T, object>(value, null, out outValue, out _, culture, allowParamNull: true);
 
-    public static bool Convert<T, TParam>(object[] values, object param, out T[] outValue, out TParam outParam, CultureInfo culture = null, bool allowParamNull = true)
+    public static bool Convert<T, TParam>(object[] values, object? param, [NotNullWhen(true)] out T?[]? outValue, [NotNullWhen(true)] out TParam? outParam, CultureInfo? culture = null, bool allowParamNull = true)
     {
 
         outValue = null;
@@ -65,7 +66,7 @@ static class ConverterUtility
 
         outValue = v.Select(v => v.newValue).ToArray();
 
-        outParam = (TParam)System.Convert.ChangeType(param, typeof(TParam), culture);
+        outParam = (TParam?)System.Convert.ChangeType(param, typeof(TParam?), culture);
         return outParam is not null || allowParamNull;
 
     }
@@ -105,13 +106,13 @@ public abstract class BetterConverter<TOut> : MarkupExtension, IValueConverter
 {
 
     /// <inheritdoc cref="IValueConverter.Convert(object, Type, object, CultureInfo)"/>/>
-    public abstract TOut Convert(object value);
+    public abstract TOut Convert(object? value);
 
     /// <inheritdoc cref="IValueConverter.ConvertBack(object, Type, object, CultureInfo)"/>/>
-    public virtual object ConvertBack(TOut value) =>
+    public virtual object ConvertBack(TOut? value) =>
         throw new NotImplementedException();
 
-    object IValueConverter.Convert(object value, Type _, object _1, CultureInfo _2) =>
+    object? IValueConverter.Convert(object? value, Type _, object _1, CultureInfo _2) =>
         Convert(value);
 
     object IValueConverter.ConvertBack(object value, Type _, object _1, CultureInfo culture) =>
@@ -126,18 +127,18 @@ public abstract class BetterConverter<TIn, TOut> : MarkupExtension, IValueConver
 {
 
     /// <inheritdoc cref="IValueConverter.Convert(object, Type, object, CultureInfo)"/>/>
-    public abstract TOut Convert(TIn value);
+    public abstract TOut Convert(TIn? value);
 
     /// <inheritdoc cref="IValueConverter.ConvertBack(object, Type, object, CultureInfo)"/>/>
-    public virtual TIn ConvertBack(TOut value) =>
+    public virtual TIn ConvertBack(TOut? value) =>
         throw new NotImplementedException();
 
-    object IValueConverter.Convert(object value, Type _, object _1, CultureInfo culture) =>
+    object? IValueConverter.Convert(object? value, Type _, object _1, CultureInfo culture) =>
         ConverterUtility.Convert<TIn>(value, out var _value, culture)
-            ? Convert(_value ?? default)
+            ? Convert(_value)
             : value;
 
-    object IValueConverter.ConvertBack(object value, Type _, object _1, CultureInfo culture) =>
+    object? IValueConverter.ConvertBack(object? value, Type _, object _1, CultureInfo culture) =>
        ConverterUtility.Convert<TOut>(value, out var _value, culture)
             ? ConvertBack(_value)
             : value;
@@ -149,18 +150,18 @@ public abstract class BetterConverter<TIn, TOut, TParameter> : MarkupExtension, 
 {
 
     /// <inheritdoc cref="IValueConverter.Convert(object, Type, object, CultureInfo)"/>/>
-    public abstract TOut Convert(TIn value, TParameter parameter);
+    public abstract TOut Convert(TIn? value, TParameter? parameter);
 
     /// <inheritdoc cref="IValueConverter.ConvertBack(object, Type, object, CultureInfo)"/>/>
-    public virtual TIn ConvertBack(TOut value, TParameter parameter) =>
+    public virtual TIn ConvertBack(TOut? value, TParameter? parameter) =>
         throw new NotImplementedException();
 
-    object IValueConverter.Convert(object value, Type _, object parameter, CultureInfo culture) =>
+    object? IValueConverter.Convert(object? value, Type _, object parameter, CultureInfo culture) =>
         ConverterUtility.Convert<TIn, TParameter>(value, parameter, out var _value, out var _parameter, culture)
             ? Convert(_value, _parameter)
             : value;
 
-    object IValueConverter.ConvertBack(object value, Type _, object parameter, CultureInfo culture) =>
+    object? IValueConverter.ConvertBack(object? value, Type _, object parameter, CultureInfo culture) =>
         ConverterUtility.Convert<TOut, TParameter>(value, parameter, out var _value, out var _parameter, culture)
             ? ConvertBack(_value, _parameter)
             : value;
@@ -195,11 +196,11 @@ public abstract class BetterMultiConverter : MarkupExtension, IMultiValueConvert
 public abstract class BetterMultiConverter<TIn, TOut> : MarkupExtension, IMultiValueConverter
 {
 
-    public abstract TOut Convert(TIn[] values);
-    public virtual TIn[] ConvertBack(TOut value) =>
+    public abstract TOut? Convert(TIn?[]? values);
+    public virtual TIn[] ConvertBack(TOut? value) =>
         throw new NotImplementedException();
 
-    object IMultiValueConverter.Convert(object[] values, Type _, object _1, CultureInfo culture) =>
+    object? IMultiValueConverter.Convert(object[] values, Type _, object _1, CultureInfo culture) =>
         ConverterUtility.Convert<TIn>(values, out var _values, culture)
             ? Convert(_values)
             : throw new ArgumentException("One or more variables in 'values' was not of correct type.");
@@ -215,18 +216,18 @@ public abstract class BetterMultiConverter<TIn, TOut> : MarkupExtension, IMultiV
 public abstract class BetterMultiConverter<TIn, TOut, TParameter> : MarkupExtension, IMultiValueConverter
 {
 
-    public abstract TOut Convert(TIn[] values, TParameter parameter);
-    public virtual TIn[] ConvertBack(TOut value, TParameter parameter) =>
+    public abstract TOut Convert(TIn?[]? values, TParameter? parameter);
+    public virtual TIn?[]? ConvertBack(TOut? value, TParameter? parameter) =>
         throw new NotImplementedException();
 
-    object IMultiValueConverter.Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
+    object? IMultiValueConverter.Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
         ConverterUtility.Convert<TIn, TParameter>(values, parameter, out var _values, out var _param, culture: culture)
             ? Convert(_values, _param)
             : throw new ArgumentException("One or more variables in 'values' was not of correct type.");
 
-    object[] IMultiValueConverter.ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) =>
+    object[]? IMultiValueConverter.ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) =>
         ConverterUtility.Convert<TOut, TParameter>(value, parameter, out var _values, out var _param, culture: culture)
-            ? ConvertBack(_values, _param).Cast<object>().ToArray()
+            ? ConvertBack(_values, _param)?.Cast<object>()?.ToArray()
             : throw new ArgumentException("Variable 'value' was not of correct type.", nameof(value));
 
 }
