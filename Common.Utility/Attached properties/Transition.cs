@@ -17,7 +17,7 @@ public static class Transition
     public static Task BeginAsync(this Storyboard? storyboard, FrameworkElement? element = null)
     {
 
-        if (storyboard is null || element is not null)
+        if (storyboard is null || element is null)
             return Task.CompletedTask;
 
         var tcs = new TaskCompletionSource<bool>();
@@ -38,10 +38,10 @@ public static class Transition
 
     static readonly CubicEase ease = new();
 
-    public static Storyboard FadeAnimation(double to, double durationInSeconds = 0.25)
+    public static Storyboard FadeAnimation(double to, double durationInSeconds = 0.25, double? from = null)
     {
         var storyboard = new Storyboard();
-        var animation = new DoubleAnimation { Duration = new(TimeSpan.FromSeconds(durationInSeconds)), To = to, EasingFunction = ease };
+        var animation = new DoubleAnimation { Duration = new(TimeSpan.FromSeconds(durationInSeconds)), From = from, To = to, EasingFunction = ease };
         Storyboard.SetTargetProperty(animation, new(nameof(UIElement.Opacity)));
         storyboard.Children.Add(animation);
         return storyboard;
