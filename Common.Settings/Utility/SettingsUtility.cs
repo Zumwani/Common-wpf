@@ -121,7 +121,8 @@ public static class SettingsUtility
     {
         _ = pending.Remove(name);
         using var key = Registry.CurrentUser.CreateSubKey(Key, writable: true);
-        key.SetValue(name, JsonSerializer.Serialize(value, SerializerOptions));
+        var json = JsonSerializer.Serialize(value, SerializerOptions);
+        key.SetValue(name, json);
     }
 
     /// <summary>Reads value directly from registry.</summary>
@@ -181,6 +182,18 @@ public static class SettingsUtility
         json = (string?)key?.GetValue(setting.Name, "");
 
         return !string.IsNullOrWhiteSpace(json);
+
+    }
+
+    /// <summary>Serializes the setting and returns the json string.</summary>
+    public static bool Serialize(Setting setting, [NotNullWhen(true)] out string? json)
+    {
+
+        json = setting.GetValueInternal(out var obj)
+        ? JsonSerializer.Serialize(obj, SerializerOptions)
+        : null;
+
+        return json is not null;
 
     }
 
