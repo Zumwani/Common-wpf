@@ -25,6 +25,9 @@ public class AppArguments
     public string[] Parameters { get; set; }
     public string AsString { get; set; }
 
+    public AppArguments()
+    { }
+
     public AppArguments(string[] parameters, string asString)
     {
         Parameters = parameters;
