@@ -92,11 +92,11 @@ public static class AppUtility
         /// <summary>Gets if auto start is enabled.</summary>
         public bool IsEnabled
         {
-            get => (string?)Key?.GetValue(Info.PackageName) == Info.ExecutablePath.Quotify();
+            get => (string?)Key?.GetValue(Info.PackageName) == Info.ExecutablePath.Quotify() + " " + param;
             set
             {
                 if (value)
-                    Key?.SetValue(Info.PackageName, Info.ExecutablePath.Quotify());
+                    Key?.SetValue(Info.PackageName, Info.ExecutablePath.Quotify() + " " + param);
                 else
                     Key?.DeleteValue(Info.PackageName, throwOnMissingValue: false);
                 PropertyChanged?.Invoke(this, new(nameof(IsEnabled)));
@@ -107,10 +107,22 @@ public static class AppUtility
             Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
         /// <summary>Enable auto start.</summary>
-        public void Enable() => IsEnabled = true;
+        /// <param name="parameter">Sets <see cref="Parameter"/> before enabling.</param>
+        public void Enable(string? parameter = null)
+        {
+            param = parameter;
+            IsEnabled = true;
+        }
 
         /// <summary>Disable auto start.</summary>
         public void Disable() => IsEnabled = false;
+
+        string? param;
+        public string? Parameter
+        {
+            get => param;
+            set { param = value; if (IsEnabled) Enable(); }
+        }
 
     }
 
