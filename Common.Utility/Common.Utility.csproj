@@ -27,7 +27,7 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ShellUtility.Screens" Version="1.0.47" />
+		<PackageReference Include="ShellUtility.Screens" Version="1.0.50" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 	</ItemGroup>
 
