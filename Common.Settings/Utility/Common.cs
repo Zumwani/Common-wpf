@@ -5,7 +5,7 @@ using System.Windows.Markup;
 [assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "Common.Utility.AttachedProperties")]
 namespace Common.Utility.AttachedProperties;
 
-public static class Common
+public static class Settings
 {
 
     #region Save Position
@@ -14,7 +14,7 @@ public static class Common
     public static void SetSavePosition(Window window, bool value) => window.SetValue(SavePositionProperty, value);
 
     public static readonly DependencyProperty SavePositionProperty =
-        DependencyProperty.RegisterAttached("SavePosition", typeof(bool), typeof(Common), new PropertyMetadata(false, OnSavePositionChanged));
+        DependencyProperty.RegisterAttached("SavePosition", typeof(bool), typeof(Settings), new PropertyMetadata(false, OnSavePositionChanged));
 
     static readonly List<Type> list = new();
 
