@@ -10,6 +10,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Markup;
+using System.Windows.Media.Animation;
 
 [assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "Common.Utility.AttachedProperties")]
 namespace Common.Utility.AttachedProperties;
@@ -199,88 +200,106 @@ public static class Common
     #endregion
     #region IsVisible
 
-    public static bool? GetIsVisible(UIElement obj) => (bool?)obj.GetValue(IsVisibleProperty);
-    public static void SetIsVisible(UIElement obj, bool? value) => obj.SetValue(IsVisibleProperty, value);
+    public static bool? GetIsVisible(FrameworkElement obj) => (bool?)obj.GetValue(IsVisibleProperty);
+    public static void SetIsVisible(FrameworkElement obj, bool? value) => obj.SetValue(IsVisibleProperty, value);
 
     public static readonly DependencyProperty IsVisibleProperty =
         DependencyProperty.RegisterAttached("IsVisible", typeof(bool?), typeof(Common), new PropertyMetadata(null, OnIsVisibleChanged));
 
-    static async void OnIsVisibleChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
-    {
-
-        if (sender is not UIElement element)
-            return;
-
-        if (e.NewValue is true)
-        {
-            element.Visibility = Visibility.Visible;
-            await Transition.DoTransition(Transition.GetShow(element), element as FrameworkElement);
-        }
-        else if (e.NewValue is false)
-        {
-            await Transition.DoTransition(Transition.GetHide(element), element as FrameworkElement);
-            element.Visibility = Visibility.Collapsed;
-        }
-
-    }
+    static void OnIsVisibleChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e) =>
+        DoVisibilityChange((FrameworkElement)sender, e.NewValue is true, Visibility.Collapsed);
 
     #endregion
     #region IsCollapsed
 
-    public static bool? GetIsCollapsed(UIElement obj) => (bool?)obj.GetValue(IsCollapsedProperty);
-    public static void SetIsCollapsed(UIElement obj, bool? value) => obj.SetValue(IsCollapsedProperty, value);
+    public static bool? GetIsCollapsed(FrameworkElement obj) => (bool?)obj.GetValue(IsCollapsedProperty);
+    public static void SetIsCollapsed(FrameworkElement obj, bool? value) => obj.SetValue(IsCollapsedProperty, value);
 
     public static readonly DependencyProperty IsCollapsedProperty =
         DependencyProperty.RegisterAttached("IsCollapsed", typeof(bool?), typeof(Common), new PropertyMetadata(null, OnIsCollapsedChanged));
 
-    static async void OnIsCollapsedChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
-    {
-
-        if (sender is not UIElement element)
-            return;
-
-        if (e.NewValue is true)
-        {
-            await Transition.DoTransition(Transition.GetHide(element), element as FrameworkElement);
-            element.Visibility = Visibility.Collapsed;
-        }
-        else if (e.NewValue is false)
-        {
-            element.Visibility = Visibility.Visible;
-            await Transition.DoTransition(Transition.GetShow(element), element as FrameworkElement);
-        }
-
-    }
+    static void OnIsCollapsedChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e) =>
+        DoVisibilityChange((FrameworkElement)sender, e.NewValue is false, Visibility.Collapsed);
 
     #endregion
     #region IsHidden
 
-    public static bool? GetIsHidden(UIElement obj) => (bool?)obj.GetValue(IsHiddenProperty);
-    public static void SetIsHidden(UIElement obj, bool? value) => obj.SetValue(IsHiddenProperty, value);
+    public static bool? GetIsHidden(FrameworkElement obj) => (bool?)obj.GetValue(IsHiddenProperty);
+    public static void SetIsHidden(FrameworkElement obj, bool? value) => obj.SetValue(IsHiddenProperty, value);
 
     public static readonly DependencyProperty IsHiddenProperty =
         DependencyProperty.RegisterAttached("IsHidden", typeof(bool?), typeof(Common), new PropertyMetadata(null, OnIsHiddenChanged));
 
-    static async void OnIsHiddenChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    static void OnIsHiddenChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e) =>
+        DoVisibilityChange((FrameworkElement)sender, e.NewValue is false, Visibility.Hidden);
+
+    #endregion
+
+    static readonly Dictionary<FrameworkElement, Storyboard?> activeStoryboard = new();
+    static void CancelAnimation(FrameworkElement element)
+    {
+        if (activeStoryboard.Remove(element, out var storyboard))
+        {
+            storyboard?.Stop();
+            storyboard?.Remove();
+        }
+    }
+
+    static async void DoVisibilityChange(FrameworkElement element, bool visible, Visibility hiddenValue)
     {
 
-        if (sender is not UIElement element)
+        if (element is null)
             return;
 
-        if (e.NewValue is true)
+        CancelAnimation(element);
+
+        if (visible)
         {
-            await Transition.DoTransition(Transition.GetHide(element), element as FrameworkElement);
-            element.Visibility = Visibility.Hidden;
-        }
-        else if (e.NewValue is false)
-        {
+
+            if (!element.IsLoaded)
+                element.Opacity = 0;
+
             element.Visibility = Visibility.Visible;
-            await Transition.DoTransition(Transition.GetShow(element), element as FrameworkElement);
+            if (Transition.GetShowAnimation(element, out var storyboard))
+            {
+                activeStoryboard.Set(element, storyboard);
+                await storyboard.BeginAsync(element);
+                if (activeStoryboard.TryGetValue(element, out var s) && s == storyboard)
+                    OnDone();
+            }
+            else
+                OnDone();
+
+        }
+        else
+        {
+
+            if (!element.IsLoaded)
+            {
+                OnDone();
+                return;
+            }
+
+            if (Transition.GetHideAnimation(element, out var storyboard))
+            {
+                activeStoryboard.Set(element, storyboard);
+                await storyboard.BeginAsync(element);
+                if (activeStoryboard.TryGetValue(element, out var s) && s == storyboard)
+                    OnDone();
+            }
+            else
+                OnDone();
+
+        }
+
+        void OnDone()
+        {
+            CancelAnimation(element);
+            element.Visibility = visible ? Visibility.Visible : hiddenValue;
+            element.Opacity = visible ? 1 : 0;
         }
 
     }
-
-    #endregion
 
     #endregion
     #region Window

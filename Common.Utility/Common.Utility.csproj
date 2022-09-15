@@ -27,6 +27,7 @@
   </ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="SciChart.Wpf.UI.Transitionz" Version="3.1.251" />
 		<PackageReference Include="ShellUtility.Screens" Version="1.0.50" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 	</ItemGroup>
