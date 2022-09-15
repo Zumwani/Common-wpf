@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Utility", "Common.Ut
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.VersionIncrementer", "Common.VersionIncrementer\Common.VersionIncrementer.csproj", "{D20907F7-9E14-4787-9C58-F58F37CCC7A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfApp1", "WpfApp1\WpfApp1.csproj", "{0158B3F8-23A6-46B0-9E33-679D4CB20DDD}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{D20907F7-9E14-4787-9C58-F58F37CCC7A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D20907F7-9E14-4787-9C58-F58F37CCC7A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D20907F7-9E14-4787-9C58-F58F37CCC7A0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0158B3F8-23A6-46B0-9E33-679D4CB20DDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0158B3F8-23A6-46B0-9E33-679D4CB20DDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0158B3F8-23A6-46B0-9E33-679D4CB20DDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0158B3F8-23A6-46B0-9E33-679D4CB20DDD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
