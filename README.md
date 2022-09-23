@@ -41,7 +41,8 @@ public class ExampleFlags : FlagSetting<string, Flag>
   xmlns:settings="clr-namespace:Example.Settings"
   xmlns:settingsUtility="common://settings"
   Width="800" Height="450" WindowStartupLocation="Manual"
-  Title="{settings:WindowTitle Mode=OneWay}">
+  Title="{settings:WindowTitle Mode=OneWay}"
+  Settings.SavePosition="True"><!--Attached property for saving window pos-->
   ..
 </Window>
 ```
@@ -83,8 +84,7 @@ Contains utility functions for wpf.
 ```xml
 <Window ..
   xmlns:common="http://common"
-  common:IsVisibleInAltTab="False"
-  common.SavePosition="True">
+  Common:IsVisibleInAltTab="False">
 
 </Window>
 ```
