@@ -1,39 +1,34 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Authors>Common-wpf</Authors>
-    <PackageId>Common-wpf.Utility</PackageId>
-    <Product>Common-wpf.Utility</Product>
-    <Description>Contains various utility classes for working with wpf. Check repo for a list of available utilities.</Description>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/Zumwani/Common-wpf</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Zumwani/Common-wpf</RepositoryUrl>
-    <PackageTags>wpf;xaml;</PackageTags>
-    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
-    <Version></Version>
-    <Platforms>AnyCPU;x64;x86</Platforms>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<UseWPF>true</UseWPF>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<Authors>Common-wpf</Authors>
+		<PackageId>Common-wpf.Utility</PackageId>
+		<Product>Common-wpf.Utility</Product>
+		<Description>Contains various utility classes for working with wpf. Check repo for a list of available utilities.</Description>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageProjectUrl>https://github.com/Zumwani/Common-wpf</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Zumwani/Common-wpf</RepositoryUrl>
+		<PackageTags>wpf;xaml;</PackageTags>
+		<RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+		<Version></Version>
+		<Platforms>AnyCPU;x64;x86</Platforms>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="SciChart.Wpf.UI.Transitionz" Version="3.1.251" />
+		<None Include="..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="ShellUtility.Screens" Version="1.0.50" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 	</ItemGroup>
-
-  <!--<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(BuildingInsideVisualStudio)' == 'true'">
-    <Exec Command="&quot;$(SolutionDir)\VersionIncrementer.exe&quot; -increment &quot;$(ProjectPath)&quot; &quot;$(ProjectDir)\Version.props&quot;" />
-  </Target>-->
-
+	
 </Project>
