@@ -1,43 +1,122 @@
 ﻿using Common.Settings.Internal;
 using Common.Settings.JsonConverters;
 using Microsoft.Win32;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
+using path = System.IO.Path;
 
 namespace Common.Settings.Utility;
+
+//TODO: Add SettingsUtility.Reload()
+//TODO: Add registry watcher / filesystem watcher and add event SettingsUtility.OnSettingsChangedExternally
+//TODO: Make sure to add check so that we're not raising OnSettingsChangedExternally when we ourselves are writing
+
+//TODO: Update example
+
+public enum Backend
+{
+    Registry, FileSystem
+}
 
 /// <summary>Provides utility methods relating to settings.</summary>
 public static class SettingsUtility
 {
 
-    static string key = $"Software\\{Assembly.GetEntryAssembly()?.GetName()?.Name}";
-
-    /// <summary>The registry key to store settings in. This needs to be set before any settings has been instantiated.</summary>
-    public static string Key
-    {
-        get => key;
-        set => key = settings.Count == 0 ? value : throw new InvalidOperationException("Cannot set key after any settings have been instantiated.");
-    }
-
-    /// <summary>The delay to use when using delaying a save. This is to prevent spam writes.</summary>
-    public static TimeSpan DelayDuration { get; set; } = TimeSpan.FromSeconds(0.5);
-
-    /// <summary>Determines whatever <see cref="JsonException"/> will be propagated or not when deserializing. If <see langword="false"/>, then <see langword="default"/> will be returned.</summary>
-    public static bool ThrowOnDeserializationErrors { get; set; }
-
-    /// <summary>Determines whatever <see cref="SavePending"/> should be automatically called on <see cref="Application.Exit"/>.</summary>
-    public static bool PerformPendingWritesOnShutdown { get; set; } = true;
-
-    static SettingsUtility()
-    {
+    static SettingsUtility() =>
         EnableDefaultConverters();
-        if (Application.Current is Application app)
-            app.Exit += (s, e) => { if (PerformPendingWritesOnShutdown) SavePending(); };
+
+    #region Settings and initialization
+
+    /// <summary>Initializes Common.Settings.</summary>
+    /// <param name="backend">Specifies the backend to use when storing settings.</param>
+    /// <param name="path">The path to the registry key or folder on disk store the settings. Overrides <paramref name="packageName"/>.</param>
+    /// <param name="packageName">Specifies the package name. Used to generate <paramref name="path"/>, if not explicitly specified.</param>
+    /// <param name="writeDelayInSeconds">Specifies the delay before writing, to prevent spam-writes.</param>
+    /// <param name="throwOnDeserializationErrors">Specifies whatever exceptions should be rethrown when a serialization error occurs. See <see cref="ThrowOnDeserializationErrors"/> for more info.</param>
+    /// <param name="performPendingWritesOnAppShutdown">Specifies whatever <see cref="SettingsUtility.SavePending"/> should be automatically called on <see cref="Application.Exit"/></param>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    /// <remarks>
+    /// Default options will be used if not explicitly initialized.<br/><br/>
+    /// <see cref="InvalidOperationException"/> will be thrown if called after any settings has been loaded.
+    /// </remarks>
+    public static void Initialize(Backend backend, string? packageName = null, string? path = null, double writeDelayInSeconds = 0.5, bool throwOnDeserializationErrors = false, bool performPendingWritesOnAppShutdown = true)
+    {
+
+        if (settings.Count > 0)
+            throw new InvalidOperationException("Initialization can only occur before any settings has been loaded.");
+
+        Backend = backend;
+        PackageName = packageName ?? PackageName;
+        Path = path;
+        WriteDelay = TimeSpan.FromSeconds(writeDelayInSeconds);
+        ThrowOnDeserializationErrors = throwOnDeserializationErrors;
+        PerformPendingWritesOnAppShutdown = performPendingWritesOnAppShutdown;
+
+        Initialize();
+
     }
 
+    static void Initialize()
+    {
+
+        if (Path is not null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(PackageName))
+            throw new InvalidOperationException("PackageName cannot be null when auto generating path.");
+
+        Path =
+            Backend is Backend.Registry
+            ? "Software\\" + PackageName
+            : path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), PackageName);
+
+        if (Application.Current is Application app && PerformPendingWritesOnAppShutdown)
+            app.Exit += (s, e) => SavePending();
+
+    }
+
+    /// <summary>Specifies the backend to use when storing settings.</summary>
+    /// <remarks>Default is <see cref="Backend.Registry"/>.</remarks>
+    public static Backend Backend { get; private set; }
+
+    /// <summary>Specifies the package name.</summary>
+    /// <remarks>
+    /// Used to generate <see cref="Path"/> when it is <see langword="null"/> or empty.<br/><br/>
+    /// Produces the following:<br/>
+    /// <see cref="Backend.Registry"/>: HKEY_Current_User\Software\[PackageName]<br/>
+    /// <see cref="Backend.FileSystem"/>: %AppData%\[PackageName]
+    /// <br/><br/>
+    /// Default is: <code>Assembly.GetEntryAssembly().GetName().Name.</code>
+    /// </remarks>
+    public static string PackageName { get; private set; } =
+        Assembly.GetEntryAssembly()?.GetName()?.Name ??
+        throw new InvalidOperationException("Assembly.GetEntryAssembly()?.GetName()?.Name returned null.");
+
+    /// <summary>The path to the registry key or folder on disk store the settings.</summary>
+    public static string? Path { get; private set; }
+
+    /// <summary>Specifies the delay before writing, to prevent spam-writes.</summary>
+    /// <remarks>Default is 0.5 seconds.</remarks>
+    public static TimeSpan WriteDelay { get; private set; } = TimeSpan.FromSeconds(0.5);
+
+    /// <summary>Specifies whatever exceptions should be rethrown when a serialization error occurs.</summary>
+    /// <remarks>
+    /// Settings will be automatically recreated on serialization if <see langword="false"/>, when error occurs.<br/>
+    /// Default is <see langword="false"/>.
+    /// </remarks>
+    public static bool ThrowOnDeserializationErrors { get; private set; }
+
+    /// <summary>Specifies whatever <see cref="SettingsUtility.SavePending"/> should be automatically called on <see cref="Application.Exit"/>.</summary>
+    /// <remarks>Default is <see langword="true"/>.</remarks>
+    public static bool PerformPendingWritesOnAppShutdown { get; private set; } = true;
+
+    #endregion
     #region Save
 
     /// <summary>Saves the setting.</summary>
@@ -105,11 +184,9 @@ public static class SettingsUtility
 
         async void Delay(CancellationToken token)
         {
-
-            await Task.Delay((int)DelayDuration.TotalMilliseconds, CancellationToken.None);
+            await Task.Delay(WriteDelay, CancellationToken.None);
             if (!token.IsCancellationRequested)
                 Write(name, value);
-
         }
 
     }
@@ -119,36 +196,75 @@ public static class SettingsUtility
 
     static void Write<T>(string name, T? value)
     {
+
+        Initialize();
+        if (Path is null) throw new InvalidOperationException("Path must be initialized.");
+
         _ = pending.Remove(name);
-        using var key = Registry.CurrentUser.CreateSubKey(Key, writable: true);
-        var json = JsonSerializer.Serialize(value, SerializerOptions);
-        key.SetValue(name, json);
+
+        try
+        {
+
+            var json = value as string ?? JsonSerializer.Serialize(value, SerializerOptions);
+
+            if (Backend is Backend.Registry)
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(Path, writable: true);
+                key.SetValue(name, json);
+            }
+            else if (Backend is Backend.FileSystem)
+            {
+                _ = Directory.CreateDirectory(Path);
+                File.WriteAllText(path.Combine(Path, name + ".json"), json);
+            }
+
+        }
+        catch (JsonException)
+        {
+            if (ThrowOnDeserializationErrors)
+                throw;
+        }
+
     }
 
     /// <summary>Reads value directly from registry.</summary>
     public static bool Read<T>(string name, [NotNullWhen(true)] out T? value)
     {
 
+        Initialize();
+        if (Path is null) throw new InvalidOperationException("Path must be initialized.");
+
         value = default;
 
-        using var key = Registry.CurrentUser.CreateSubKey(Key);
-        var result = key?.GetValue(name);
-        if (result is string json && !string.IsNullOrWhiteSpace(json))
+        try
         {
-            try
+
+            string? json = null;
+            if (Backend is Backend.Registry)
             {
+                using var key = Registry.CurrentUser.CreateSubKey(Path);
+                json = key?.GetValue(name) as string;
+            }
+            else if (Backend is Backend.FileSystem)
+            {
+                var file = path.Combine(Path, name + ".json");
+                if (File.Exists(file))
+                    json = File.ReadAllText(file);
+            }
+
+            if (typeof(T) == typeof(string))
+                value = (T?)(object?)json;
+            else if (!string.IsNullOrWhiteSpace(json))
                 value = JsonSerializer.Deserialize<T>(json, SerializerOptions);
-                return value is not null;
-            }
-            catch (JsonException)
-            {
-                if (ThrowOnDeserializationErrors)
-                    throw;
-                return false;
-            }
+
         }
-        else
-            return false;
+        catch (JsonException)
+        {
+            if (ThrowOnDeserializationErrors)
+                throw;
+        }
+
+        return value is not null;
 
     }
 
@@ -173,13 +289,26 @@ public static class SettingsUtility
     public static bool SetRawValue(Setting setting, object? value) =>
         setting.SetRawInternal(value);
 
-    /// <summary>Gets the raw json from the registry.</summary>
+    /// <summary>Gets the raw json.</summary>
     /// <returns><see langword="true"/> when value existed</returns>
     public static bool GetJson(Setting setting, [NotNullWhen(true)] out string? json)
     {
 
-        using var key = Registry.CurrentUser.CreateSubKey(Key);
-        json = (string?)key?.GetValue(setting.Name, "");
+        Initialize();
+        if (Path is null) throw new InvalidOperationException("Path must be initialized.");
+
+        json = null;
+        if (Backend is Backend.Registry)
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(Path);
+            json = key?.GetValue(setting.Name, "") as string;
+        }
+        else if (Backend is Backend.FileSystem)
+        {
+            var file = path.Combine(Path, setting.Name + ".json");
+            if (File.Exists(file))
+                json = File.ReadAllText(file);
+        }
 
         return !string.IsNullOrWhiteSpace(json);
 
@@ -198,12 +327,8 @@ public static class SettingsUtility
     }
 
     /// <summary>Sets the raw json to the registry.</summary>
-    public static void SetJson(Setting setting, string json)
-    {
-        _ = pending.Remove(setting.Name);
-        using var key = Registry.CurrentUser.CreateSubKey(Key, writable: true);
-        key.SetValue(setting.Name, json);
-    }
+    public static void SetJson(Setting setting, string json) =>
+        Write(setting.Name, json);
 
     #endregion
     #region JsonConverters
@@ -231,16 +356,37 @@ public static class SettingsUtility
     static void EnableDefaultConverters()
     {
 
-        EnableDefaultConverter<RectJsonConverter>();
-        EnableDefaultConverter<BitmapSourceJsonConverter>();
-        EnableDefaultConverter<IntPtrJsonConverter>();
-
         EnableDefaultConverter<RectJsonConverter.NonNullable>();
         EnableDefaultConverter<BitmapSourceJsonConverter.NonNullable>();
         EnableDefaultConverter<IntPtrJsonConverter.NonNullable>();
 
+        EnableDefaultConverter<RectJsonConverter>();
+        EnableDefaultConverter<BitmapSourceJsonConverter>();
+        EnableDefaultConverter<IntPtrJsonConverter>();
+
     }
 
     #endregion
+
+    /// <summary>Opens <see cref="Path"/> in explorer or regedit, depending on <see cref="Backend"/>.</summary>
+    public static void OpenStore()
+    {
+
+        Initialize();
+        if (Path is null) throw new InvalidOperationException("Path must be initialized.");
+
+        if (Backend is Backend.Registry)
+        {
+            using var key = Registry.CurrentUser.CreateSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit", writable: true);
+            key.SetValue("LastKey", "computer\\HKEY_CURRENT_USER\\" + Path);
+            _ = Process.Start(new ProcessStartInfo("regedit") { UseShellExecute = true });
+        }
+        else
+        {
+            _ = Directory.CreateDirectory(Path);
+            _ = Process.Start(new ProcessStartInfo(Path) { UseShellExecute = true });
+        }
+
+    }
 
 }
