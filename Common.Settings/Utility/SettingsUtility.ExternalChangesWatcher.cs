@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Microsoft.Win32;
+using System.IO;
 
 namespace Common.Settings.Utility;
 
@@ -20,7 +21,7 @@ public static partial class SettingsUtility
     {
 
         internal static FileSystemWatcher? fileWatcher;
-        internal static object? registryWatcher;
+        internal static RegistryMonitor? registryWatcher;
 
         static bool isEnabled = true;
         internal static bool IsEnabled
@@ -30,6 +31,7 @@ public static partial class SettingsUtility
             {
                 isEnabled = value;
                 if (fileWatcher is not null) fileWatcher.EnableRaisingEvents = value;
+                if (registryWatcher is not null) registryWatcher.IsEnabled = value;
             }
         }
 
@@ -53,44 +55,43 @@ public static partial class SettingsUtility
 
         /// <summary>Specifies whatever the watcher is currently watching for changes.</summary>
         /// <remarks><see cref="ChangeWatcher"/> automatically enables and disables itself depending on handlers added or removed.</remarks>
-        public static bool IsTracking => (fileWatcher ?? registryWatcher) is not null;
+        public static bool IsTracking => fileWatcher is not null || registryWatcher is not null;
 
-        static bool HasCallbacks => callbacksExternal.Concat(callbacksSelf).OfType<Action>().Any();
+        static bool HasCallbacks => callbacks.OfType<ChangeDetected>().Any();
 
-        static readonly List<Action> callbacksExternal = new();
-        static readonly List<Action> callbacksSelf = new();
+        static readonly List<ChangeDetected> callbacks = new();
 
-        /// <summary>Adds an handler to be called when an external change is detected.</summary>
+        /// <summary>asd</summary>
+        public delegate void ChangeDetected(bool isExternal);
+
+        /// <summary>
+        /// Adds an handler to be called when a change is detected.<br/><br/>
+        /// Example:<br/>
+        /// <code>SettingsUtility.ChangeWatcher.AddHandler((isExternalChange) => { })</code>
+        /// </summary>
         /// <remarks>
-        /// Starts watcher if needed.
-        /// <br/><br/>
-        /// Note that <see cref="SettingsUtility.Initialize(Backend, string?, string?, double, bool, bool)"/> must be called before this, if you need to do so explicitly.
+        /// Starts watcher if needed.<br/>
+        /// Note that <see cref="Initialize(Backend, string?, string?, double, bool, bool)"/> must be called before this, if you need to do so explicitly.
         /// </remarks>
-        public static void AddHandler(Action action, bool externalChangesOnly = true)
+        public static void AddHandler(ChangeDetected action)
         {
 
             if (action is null)
                 throw new ArgumentNullException(nameof(action));
 
-            callbacksExternal.Add(action);
-            if (!externalChangesOnly) callbacksSelf.Add(action);
+            callbacks.Add(action);
 
             if (!IsTracking)
                 Reset();
 
         }
 
-        /// <summary>Removes an handler that was to be called when an external change is detected.</summary>
+        /// <summary>Removes an handler that was to be called when a change would be detected.</summary>
         /// <remarks>Stops watcher if all handlers are removed.</remarks>
-        public static void RemoveHandler(Action action)
+        public static void RemoveHandler(ChangeDetected action)
         {
-
-            callbacksExternal.Remove(action);
-            callbacksSelf.Remove(action);
-
-            if (!HasCallbacks)
+            if (callbacks.Remove(action) && !HasCallbacks)
                 Reset();
-
         }
 
         #endregion
@@ -110,8 +111,8 @@ public static partial class SettingsUtility
 
             fileWatcher = new() { Path = Path, EnableRaisingEvents = IsEnabled, NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName };
             fileWatcher.Error += (s, e) => Reset();
-            fileWatcher.Changed += (s, e) => OnExternalChangeDetected();
-            fileWatcher.Deleted += (s, e) => OnExternalChangeDetected();
+            fileWatcher.Changed += (s, e) => OnChangeDetected(isExternal: true);
+            fileWatcher.Deleted += (s, e) => OnChangeDetected(isExternal: true);
 
         }
 
@@ -120,27 +121,32 @@ public static partial class SettingsUtility
 
         static void DisableRegistry()
         {
-
+            registryWatcher?.Dispose();
+            registryWatcher = null;
         }
 
         static void EnableRegistry()
         {
-            throw new NotImplementedException("Watching changes for registry key currently not supported.");
+
+            Initialize();
+            if (Path is null) throw new InvalidOperationException("Path must be initialized.");
+
+            registryWatcher = new(RegistryHive.CurrentUser, Path);
+            registryWatcher.RegChanged += () => OnChangeDetected(isExternal: true);
+            registryWatcher.IsEnabled = IsEnabled;
+
         }
 
         #endregion
 
-        static void OnExternalChangeDetected()
+        static void OnChangeDetected(bool isExternal)
         {
-            foreach (var callback in callbacksExternal)
-                callback?.Invoke();
+            foreach (var callback in callbacks)
+                callback?.Invoke(isExternal);
         }
 
-        internal static void NotifyInternalChange()
-        {
-            foreach (var callback in callbacksSelf)
-                callback?.Invoke();
-        }
+        internal static void NotifyInternalChange() =>
+            OnChangeDetected(isExternal: false);
 
     }
 
