@@ -11,9 +11,6 @@ internal enum FileStatus
 public static partial class SettingsUtility
 {
 
-    //TODO: Make sure to add check so that we're not raising OnSettingsChangedExternally when we ourselves are writing
-
-    //TODO: Make sure callbacks can be removed when using method names
     //TODO: Prevent duplicate calls
 
     /// <summary>Provides events for when changes are made to the registry key / folder, that are not ours (or at least not this instance of the application).</summary>
