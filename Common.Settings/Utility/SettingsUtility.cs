@@ -13,8 +13,6 @@ using path = System.IO.Path;
 namespace Common.Settings.Utility;
 
 //TODO: Add SettingsUtility.Reload()
-//TODO: Add registry watcher / filesystem watcher and add event SettingsUtility.OnSettingsChangedExternally
-//TODO: Make sure to add check so that we're not raising OnSettingsChangedExternally when we ourselves are writing
 
 //TODO: Update example
 
@@ -24,7 +22,7 @@ public enum Backend
 }
 
 /// <summary>Provides utility methods relating to settings.</summary>
-public static class SettingsUtility
+public static partial class SettingsUtility
 {
 
     static SettingsUtility() =>
@@ -194,7 +192,7 @@ public static class SettingsUtility
     #endregion
     #region Write / Read
 
-    static void Write<T>(string name, T? value)
+    static async void Write<T>(string name, T? value)
     {
 
         Initialize();
@@ -205,6 +203,8 @@ public static class SettingsUtility
         try
         {
 
+            ChangeWatcher.IsEnabled = false;
+
             var json = value as string ?? JsonSerializer.Serialize(value, SerializerOptions);
 
             if (Backend is Backend.Registry)
@@ -214,8 +214,12 @@ public static class SettingsUtility
             }
             else if (Backend is Backend.FileSystem)
             {
+
                 _ = Directory.CreateDirectory(Path);
-                File.WriteAllText(path.Combine(Path, name + ".json"), json);
+                var file = path.Combine(Path, name + ".json");
+
+                File.WriteAllText(file, json);
+
             }
 
         }
@@ -223,6 +227,16 @@ public static class SettingsUtility
         {
             if (ThrowOnDeserializationErrors)
                 throw;
+        }
+        finally
+        {
+
+            //Lets wait so that fileystem watcher has actually detected the changes
+            if (Backend is Backend.FileSystem)
+                await Task.Delay(500);
+            ChangeWatcher.IsEnabled = true;
+            ChangeWatcher.NotifyInternalChange();
+
         }
 
     }
@@ -269,7 +283,7 @@ public static class SettingsUtility
     }
 
     #endregion
-    #region Enumerate / Get
+    #region Enumerate
 
     internal static readonly List<Setting> settings = new();
 
@@ -291,7 +305,12 @@ public static class SettingsUtility
 
     /// <summary>Gets the raw json.</summary>
     /// <returns><see langword="true"/> when value existed</returns>
-    public static bool GetJson(Setting setting, [NotNullWhen(true)] out string? json)
+    public static bool GetJson(Setting setting, [NotNullWhen(true)] out string? json) =>
+        GetJson(setting.Name, out json);
+
+    /// <summary>Gets the raw json.</summary>
+    /// <returns><see langword="true"/> when value existed</returns>
+    public static bool GetJson(string name, [NotNullWhen(true)] out string? json)
     {
 
         Initialize();
@@ -301,11 +320,11 @@ public static class SettingsUtility
         if (Backend is Backend.Registry)
         {
             using var key = Registry.CurrentUser.OpenSubKey(Path);
-            json = key?.GetValue(setting.Name, "") as string;
+            json = key?.GetValue(name, "") as string;
         }
         else if (Backend is Backend.FileSystem)
         {
-            var file = path.Combine(Path, setting.Name + ".json");
+            var file = path.Combine(Path, name + ".json");
             if (File.Exists(file))
                 json = File.ReadAllText(file);
         }
@@ -369,7 +388,7 @@ public static class SettingsUtility
     #endregion
 
     /// <summary>Opens <see cref="Path"/> in explorer or regedit, depending on <see cref="Backend"/>.</summary>
-    public static void OpenStore()
+    public static void OpenBackendLocation()
     {
 
         Initialize();

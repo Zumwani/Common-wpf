@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Markup;
 
 [assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "Common.Utility.AttachedProperties")]
-namespace Common.Utility.AttachedProperties;
+namespace Common.Settings.AttachedProperties;
 
 public static class Settings
 {
@@ -84,14 +84,14 @@ public static class Settings
         else
         {
 
-            while ((double.IsNaN(window.Width) && window.ActualWidth == 0) || (double.IsNaN(window.Height) && window.ActualHeight == 0))
+            while (double.IsNaN(window.Width) && window.ActualWidth == 0 || double.IsNaN(window.Height) && window.ActualHeight == 0)
                 await Task.Delay(100);
 
             var w = window.ActualWidth != 0 ? window.ActualWidth : window.Width;
             var h = window.ActualHeight != 0 ? window.ActualHeight : window.Height;
 
-            window.Left = (SystemParameters.PrimaryScreenWidth / 2) - (w / 2);
-            window.Top = (SystemParameters.PrimaryScreenHeight / 2) - (h / 2);
+            window.Left = SystemParameters.PrimaryScreenWidth / 2 - w / 2;
+            window.Top = SystemParameters.PrimaryScreenHeight / 2 - h / 2;
 
         }
 
