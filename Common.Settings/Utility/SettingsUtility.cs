@@ -1,18 +1,17 @@
 ﻿using Common.Settings.Internal;
-using Common.Settings.JsonConverters;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Windows;
 using path = System.IO.Path;
 
 namespace Common.Settings.Utility;
 
 //TODO: Add SettingsUtility.Reload()
+//TODO: Make sure singleton actually works, and proxies not being initialized as singleton / actually working at all
 
 //TODO: Update example
 
@@ -24,9 +23,6 @@ public enum Backend
 /// <summary>Provides utility methods relating to settings.</summary>
 public static partial class SettingsUtility
 {
-
-    static SettingsUtility() =>
-        EnableDefaultConverters();
 
     #region Settings and initialization
 
@@ -131,7 +127,7 @@ public static partial class SettingsUtility
     }
 
     /// <summary>Sets the value to null.</summary>
-    public static void Remove(this Setting setting, bool delay = true) =>
+    public static void Delete(this Setting setting, bool delay = true) =>
         Save(setting.Name, null, delay);
 
     /// <summary>Saves <paramref name="value"/> to the registry, using <paramref name="key"/> as value name.</summary>
@@ -205,7 +201,7 @@ public static partial class SettingsUtility
 
             ChangeWatcher.IsEnabled = false;
 
-            var json = value as string ?? JsonSerializer.Serialize(value, SerializerOptions);
+            var json = Serializer.Serialize(value);
 
             if (Backend is Backend.Registry)
             {
@@ -235,7 +231,7 @@ public static partial class SettingsUtility
             if (Backend is Backend.FileSystem)
                 await Task.Delay(500);
             ChangeWatcher.IsEnabled = true;
-            ChangeWatcher.NotifyInternalChange();
+            ChangeWatcher.NotifyInternalChange(name);
 
         }
 
@@ -269,7 +265,7 @@ public static partial class SettingsUtility
             if (typeof(T) == typeof(string))
                 value = (T?)(object?)json;
             else if (!string.IsNullOrWhiteSpace(json))
-                value = JsonSerializer.Deserialize<T>(json, SerializerOptions);
+                value = Serializer.Deserialize<T>(json);
 
         }
         catch (JsonException)
@@ -290,6 +286,14 @@ public static partial class SettingsUtility
     /// <summary>Enumerates all instantiated settings.</summary>
     public static IEnumerable<Setting> Enumerate() =>
         settings;
+
+    /// <summary>Finds the <see cref="Setting"/> with the specified name.</summary>
+    /// <remarks>Only searches instantiated settings.</remarks>
+    public static bool Find(string? name, [NotNullWhen(true)] out Setting? setting)
+    {
+        setting = Enumerate().FirstOrDefault(s => s.Name == name);
+        return setting is not null;
+    }
 
     #endregion
     #region Get / Set raw
@@ -338,7 +342,7 @@ public static partial class SettingsUtility
     {
 
         json = setting.GetValueInternal(out var obj)
-        ? JsonSerializer.Serialize(obj, SerializerOptions)
+        ? Serializer.Serialize(obj)
         : null;
 
         return json is not null;
@@ -350,39 +354,13 @@ public static partial class SettingsUtility
         Write(setting.Name, json);
 
     #endregion
-    #region JsonConverters
+    #region Reload
 
-    /// <summary>The <see cref="JsonSerializerOptions"/> to use when serializing.</summary>
-    public static JsonSerializerOptions SerializerOptions { get; } = new();
-
-    /// <summary>Gets if a default converter is enabled.</summary>
-    public static bool IsDefaultConverterEnabled<T>() where T : JsonConverter, new() =>
-        SerializerOptions.Converters.OfType<T>().Any();
-
-    /// <summary>Enables a default converter.</summary>
-    /// <param name="isEnabled">Determines whatever the converter should be enabled. Setting to <see langword="false"/> has same effect as <see cref="DisableDefaultConverter{T}"/>.</param>
-    public static void EnableDefaultConverter<T>(bool isEnabled = true) where T : JsonConverter, new()
+    /// <summary>Reloads all instantiated settings.</summary>
+    public static void Reload()
     {
-        _ = SerializerOptions.Converters.Remove(SerializerOptions.GetConverter(typeof(T)));
-        if (isEnabled)
-            SerializerOptions.Converters.Add(new T());
-    }
-
-    /// <summary>Disables a default converter.</summary>
-    public static void DisableDefaultConverter<T>() where T : JsonConverter, new() =>
-        EnableDefaultConverter<T>(isEnabled: false);
-
-    static void EnableDefaultConverters()
-    {
-
-        EnableDefaultConverter<RectJsonConverter.NonNullable>();
-        EnableDefaultConverter<BitmapSourceJsonConverter.NonNullable>();
-        EnableDefaultConverter<IntPtrJsonConverter.NonNullable>();
-
-        EnableDefaultConverter<RectJsonConverter>();
-        EnableDefaultConverter<BitmapSourceJsonConverter>();
-        EnableDefaultConverter<IntPtrJsonConverter>();
-
+        foreach (var setting in settings)
+            setting.Reload();
     }
 
     #endregion

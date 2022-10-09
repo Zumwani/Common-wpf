@@ -32,14 +32,18 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
     /// <summary>Gets the default items.</summary>
     public virtual IEnumerable<T>? DefaultItems { get; } = null;
 
-    #region Constructor / Setup
-
-    public CollectionSetting() : base() =>
-        Mode = BindingMode.OneWay;
-
-    protected override void OnSetupSingleton()
+    /// <summary><inheritdoc/></summary>
+    /// <remarks>Note that if value cannot be read, then <see cref="DefaultItems"/> will be added again.</remarks>
+    public override void Reload()
     {
 
+        if (Current != this)
+        {
+            Current.Reload();
+            return;
+        }
+
+        var list = new ObservableCollection<T>();
         if (SettingsUtility.Read<T[]>(Name, out var items))
             AddRange(items);
         else if (DefaultItems is not null)
@@ -47,6 +51,14 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
         SetValue(list);
 
     }
+
+    #region Constructor / Setup
+
+    public CollectionSetting() : base() =>
+        Mode = BindingMode.OneWay;
+
+    protected override void OnSetupSingleton() =>
+        Reload();
 
     #endregion
     #region Notify

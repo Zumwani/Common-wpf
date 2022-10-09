@@ -18,21 +18,32 @@ public abstract class FlagSetting<T, TSelf> : SingletonSetting<TSelf>, INotifyCo
     /// <summary>Gets the default items.</summary>
     public virtual Dictionary<T, bool>? DefaultItems { get; } = null;
 
-    #region Constructor / Setup
-
-    protected override void OnSetupSingleton()
+    /// <summary><inheritdoc/></summary>
+    /// <remarks>Note that if value cannot be read, then <see cref="DefaultItems"/> will be added again.</remarks>
+    public override void Reload()
     {
 
+        if (Current != this)
+        {
+            Current.Reload();
+            return;
+        }
+
+        var dict = new Dictionary<T, bool>();
         if (SettingsUtility.Read<Dictionary<T, bool>>(Name, out var items))
             foreach (var kvp in items)
                 Set(kvp.Key, kvp.Value);
         else if (DefaultItems is not null)
             foreach (var item in DefaultItems)
                 Set(item.Key, item.Value);
-
         SetValue(dict);
 
     }
+
+    #region Constructor / Setup
+
+    protected override void OnSetupSingleton() =>
+        Reload();
 
     #endregion
     #region Custom methods

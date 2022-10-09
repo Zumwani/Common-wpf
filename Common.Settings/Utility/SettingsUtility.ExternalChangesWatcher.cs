@@ -11,8 +11,6 @@ internal enum FileStatus
 public static partial class SettingsUtility
 {
 
-    //TODO: Prevent duplicate calls
-
     /// <summary>Provides events for when changes are made to the registry key / folder, that are not ours (or at least not this instance of the application).</summary>
     public static class ChangeWatcher
     {
@@ -48,27 +46,30 @@ public static partial class SettingsUtility
 
         }
 
-        #region Callbacks
-
         /// <summary>Specifies whatever the watcher is currently watching for changes.</summary>
         /// <remarks><see cref="ChangeWatcher"/> automatically enables and disables itself depending on handlers added or removed.</remarks>
         public static bool IsTracking => fileWatcher is not null || registryWatcher is not null;
+
+        #region Callbacks
+
+        /// <param name="name">The name of the setting that changed.<br/>Note that this is not supported when using registry backend.</param>
+        /// <param name="isExternalChange">Specifies whatever this change was external, or whatever this instance of this app wrote it.</param>
+        public delegate void ChangeDetected(string? name, bool isExternalChange);
 
         static bool HasCallbacks => callbacks.OfType<ChangeDetected>().Any();
 
         static readonly List<ChangeDetected> callbacks = new();
 
-        /// <summary>asd</summary>
-        public delegate void ChangeDetected(bool isExternal);
-
         /// <summary>
         /// Adds an handler to be called when a change is detected.<br/><br/>
         /// Example:<br/>
-        /// <code>SettingsUtility.ChangeWatcher.AddHandler((isExternalChange) => { })</code>
+        /// <code>SettingsUtility.ChangeWatcher.AddHandler((name, isExternalChange) => { })</code>
         /// </summary>
         /// <remarks>
         /// Starts watcher if needed.<br/>
-        /// Note that <see cref="Initialize(Backend, string?, string?, double, bool, bool)"/> must be called before this, if you need to do so explicitly.
+        /// Note that <see cref="Initialize(Backend, string?, string?, double, bool, bool)"/> must be called before this, if you need to do so explicitly.<br/>
+        /// <br/>
+        /// Note that when using registry as backend, name in <see cref="ChangeDetected"/> callback will be <see langword="null"/>, as it is not supported.
         /// </remarks>
         public static void AddHandler(ChangeDetected action)
         {
@@ -108,10 +109,13 @@ public static partial class SettingsUtility
 
             fileWatcher = new() { Path = Path, EnableRaisingEvents = IsEnabled, NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName };
             fileWatcher.Error += (s, e) => Reset();
-            fileWatcher.Changed += (s, e) => OnChangeDetected(isExternal: true);
-            fileWatcher.Deleted += (s, e) => OnChangeDetected(isExternal: true);
+            fileWatcher.Changed += (s, e) => OnChangeDetected(GetName(e), isExternal: true);
+            fileWatcher.Deleted += (s, e) => OnChangeDetected(GetName(e), isExternal: true);
 
         }
+
+        static string GetName(FileSystemEventArgs e) =>
+            System.IO.Path.GetFileNameWithoutExtension(e.FullPath);
 
         #endregion
         #region Registry
@@ -129,21 +133,21 @@ public static partial class SettingsUtility
             if (Path is null) throw new InvalidOperationException("Path must be initialized.");
 
             registryWatcher = new(RegistryHive.CurrentUser, Path);
-            registryWatcher.RegChanged += () => OnChangeDetected(isExternal: true);
+            registryWatcher.RegChanged += () => OnChangeDetected(null, isExternal: true);
             registryWatcher.IsEnabled = IsEnabled;
 
         }
 
         #endregion
 
-        static void OnChangeDetected(bool isExternal)
+        static void OnChangeDetected(string? name, bool isExternal)
         {
             foreach (var callback in callbacks)
-                callback?.Invoke(isExternal);
+                callback?.Invoke(name, isExternal);
         }
 
-        internal static void NotifyInternalChange() =>
-            OnChangeDetected(isExternal: false);
+        internal static void NotifyInternalChange(string name) =>
+            OnChangeDetected(name, isExternal: false);
 
     }
 

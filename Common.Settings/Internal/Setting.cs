@@ -98,6 +98,15 @@ public abstract class Setting : Binding, INotifyPropertyChanged
 
     #endregion
 
+    /// <summary>Reloads this setting.</summary>
+    /// <remarks>
+    /// Value becomes, if:<br/>
+    /// Backend value has been deleted: <see langword="default"/>.<br/>
+    /// Backend value cannot be deserialzed: <see langword="default"/>, or <see cref="System.Text.Json.JsonException"/> is thrown if <see cref="SettingsUtility.ThrowOnDeserializationErrors"/> is <see langword="true"/>.
+    /// </remarks>
+    public virtual void Reload() =>
+        throw new NotSupportedException();
+
     /// <summary>Adds the value directly.</summary>
     /// <returns><see langword="true"/> if <paramref name="value"/> could be added.</returns>
     protected virtual bool SetRaw(object? value) =>

@@ -183,8 +183,6 @@ internal class RegistryMonitor : IDisposable
     bool _disposed = false;
     readonly ManualResetEvent _eventTerminate = new(false);
 
-    RegChangeNotifyFilter _regFilter = RegChangeNotifyFilter.Key | RegChangeNotifyFilter.Attribute | RegChangeNotifyFilter.Value | RegChangeNotifyFilter.Security;
-
     /// <summary>Occurs when the specified registry key has changed.</summary>
     public event Action? RegChanged;
 
@@ -215,24 +213,6 @@ internal class RegistryMonitor : IDisposable
     /// </remarks>
     protected virtual void OnError(Exception e) =>
         Error?.Invoke(this, new ErrorEventArgs(e));
-
-    /// <summary>Gets or sets the <see cref="RegChangeNotifyFilter">RegChangeNotifyFilter</see>.</summary>
-    public RegChangeNotifyFilter RegChangeNotifyFilter
-    {
-        get => _regFilter;
-        set
-        {
-            lock (threadLock)
-            {
-
-                if (IsEnabled)
-                    throw new InvalidOperationException("Monitoring thread is already running");
-
-                _regFilter = value;
-
-            }
-        }
-    }
 
     /// <summary><see langword="true"/> if this <see cref="RegistryMonitor"/> object is currently monitoring, otherwise, <see langword="false"/>.</summary>
     public bool IsEnabled
@@ -309,7 +289,7 @@ internal class RegistryMonitor : IDisposable
             while (!_eventTerminate.WaitOne(0, true))
             {
 
-                if (RegNotifyChangeKeyValue(registryKey, true, _regFilter, _eventNotify.SafeWaitHandle, true) != 0)
+                if (RegNotifyChangeKeyValue(registryKey, true, RegChangeNotifyFilter.Value, _eventNotify.SafeWaitHandle, true) != 0)
                     throw new Win32Exception();
 
                 if (WaitHandle.WaitAny(waitHandles) == 0)

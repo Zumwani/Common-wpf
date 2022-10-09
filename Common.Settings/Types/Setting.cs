@@ -23,6 +23,9 @@ public abstract class Setting<T, TSelf> : SingletonSetting<TSelf> where TSelf : 
     protected override void OnSetupSingleton() =>
         SetValue(SettingsUtility.Read<T>(Name, out var value) ? value : DefaultValue);
 
+    protected override void OnSetupProxy() =>
+        Source = Current;
+
     #endregion
     #region Properties
 
@@ -56,6 +59,19 @@ public abstract class Setting<T, TSelf> : SingletonSetting<TSelf> where TSelf : 
             return true;
         }
         return false;
+    }
+
+    public override void Reload()
+    {
+
+        if (Current != this)
+        {
+            Current.Reload();
+            return;
+        }
+
+        SetValue(SettingsUtility.Read<T>(Name, out var value) ? value : default);
+
     }
 
     public static implicit operator T?(Setting<T, TSelf> setting) =>

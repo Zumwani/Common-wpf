@@ -29,22 +29,34 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
     /// <summary>Gets the default items.</summary>
     public virtual Dictionary<TKey, TValue>? DefaultItems { get; } = null;
 
-    #region Constructor / Setup
-
-    protected override void OnSetupSingleton()
+    /// <summary><inheritdoc/></summary>
+    /// <remarks>Note that if value cannot be read, then <see cref="DefaultItems"/> will be added again.</remarks>
+    public override void Reload()
     {
 
-        CollectionChanged += List_CollectionChanged;
+        if (Current != this)
+        {
+            Current.Reload();
+            return;
+        }
 
+        var dict = new Dictionary<TKey, TValue>();
         if (SettingsUtility.Read<Dictionary<TKey, TValue>>(Name, out var items))
             foreach (var kvp in items)
                 _ = Add(kvp);
         else if (DefaultItems is not null)
             foreach (var item in DefaultItems)
                 Set(item);
-
         SetValue(dict);
 
+    }
+
+    #region Constructor / Setup
+
+    protected override void OnSetupSingleton()
+    {
+        CollectionChanged += List_CollectionChanged;
+        Reload();
     }
 
     void List_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
