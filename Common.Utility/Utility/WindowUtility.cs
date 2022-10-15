@@ -58,4 +58,12 @@ public static class WindowUtility
 
     #endregion
 
+    /// <summary>Gets the position and size of this window.</summary>
+    public static Rect GetRect(this Window window) =>
+        AttachedProperties.Common.GetRect(window);
+
+    /// <summary>Sets the position and size of this window.</summary>
+    public static void SetRect(this Window window, Rect rect) =>
+        AttachedProperties.Common.SetRect(window, rect);
+
 }
