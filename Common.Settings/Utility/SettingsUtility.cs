@@ -71,7 +71,7 @@ public static partial class SettingsUtility
             : path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), PackageName);
 
         if (Application.Current is Application app && PerformPendingWritesOnAppShutdown)
-            app.Exit += (s, e) => SavePending();
+            Application.Current.Dispatcher.Invoke(() => app.Exit += (s, e) => SavePending());
 
     }
 

@@ -39,7 +39,7 @@ public abstract class CollectionSetting<T, TSelf> : SingletonSetting<TSelf>,
 
         if (Current != this)
         {
-            Current.Reload();
+            Current?.Reload();
             return;
         }
 
