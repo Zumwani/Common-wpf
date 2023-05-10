@@ -21,8 +21,16 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/Zumwani/Common-wpf</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Zumwani/Common-wpf</RepositoryUrl>
-		<PackageReadmeFile>../README.md</PackageReadmeFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageOutputPath>..\nuget</PackageOutputPath>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Include="..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
 	
 	<ItemGroup>
 		<PackageReference Include="ShellUtility.Screens" Version="1.0.50" />
