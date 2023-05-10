@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Windows.Markup;
 
-[assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml", "Common.Utility.Extensions")]
-namespace Common.Utility.Extensions;
+namespace Common.Utility.xaml.x;
 
 public class TrueExtension : MarkupExtension
 {

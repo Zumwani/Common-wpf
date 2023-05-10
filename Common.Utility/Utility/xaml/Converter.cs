@@ -25,15 +25,15 @@ static class ConverterUtility
 
             outValue = value is IConvertible
                 ? (T)System.Convert.ChangeType(value, typeof(T), culture)
-                : (typeof(T).IsAssignableFrom(value?.GetType())
+                : typeof(T).IsAssignableFrom(value?.GetType())
                     ? (T)value
-                    : default);
+                    : default;
 
             outParam = param is IConvertible
                 ? (TParam)System.Convert.ChangeType(param, typeof(TParam), culture)
-                : (typeof(TParam).IsAssignableFrom(param?.GetType())
+                : typeof(TParam).IsAssignableFrom(param?.GetType())
                 ? (TParam)param
-                : default);
+                : default;
 
             return
                 (valueIsNull || outValue is not null) &&

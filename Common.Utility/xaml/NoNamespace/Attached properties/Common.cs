@@ -1,5 +1,4 @@
-﻿using ShellUtility.Screens;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -9,11 +8,11 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Markup;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
+using ShellUtility.Screens;
 
-[assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "Common.Utility.AttachedProperties")]
-namespace Common.Utility.AttachedProperties;
+namespace Common.Utility.xaml.NoNamespace;
 
 public enum ClampToScreenOption
 {
@@ -232,6 +231,21 @@ public static class Common
 
     static void OnIsHiddenChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e) =>
         DoVisibilityChange((FrameworkElement)sender, e.NewValue is false, Visibility.Hidden);
+
+    #endregion
+    #region Scale
+
+    /// <summary>Gets Scale.</summary>
+    public static double GetScale(FrameworkElement obj) => (double)obj.GetValue(ScaleProperty);
+
+    /// <summary>Sets Scale.</summary>
+    public static void SetScale(FrameworkElement obj, double value) => obj.SetValue(ScaleProperty, value);
+
+    public static readonly DependencyProperty ScaleProperty =
+        DependencyProperty.RegisterAttached("Scale", typeof(double), typeof(Common), new PropertyMetadata(default(double), static (s, e) => OnScaleChanged((FrameworkElement)s, e)));
+
+    static void OnScaleChanged(FrameworkElement sender, DependencyPropertyChangedEventArgs e) =>
+        sender.LayoutTransform = new ScaleTransform() { ScaleX = (double)e.NewValue, ScaleY = (double)e.NewValue };
 
     #endregion
 
@@ -836,6 +850,10 @@ public static class Common
     }
 
     #endregion
+
+    #endregion
+    #region App
+
 
     #endregion
 

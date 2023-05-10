@@ -1,8 +1,8 @@
-﻿using ShellUtility.Screens;
-using System;
+﻿using System;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Interop;
+using ShellUtility.Screens;
 
 namespace Common.Utility;
 
@@ -60,10 +60,10 @@ public static class WindowUtility
 
     /// <summary>Gets the position and size of this window.</summary>
     public static Rect GetRect(this Window window) =>
-        AttachedProperties.Common.GetRect(window);
+        xaml.NoNamespace.Common.GetRect(window);
 
     /// <summary>Sets the position and size of this window.</summary>
     public static void SetRect(this Window window, Rect rect) =>
-        AttachedProperties.Common.SetRect(window, rect);
+        xaml.NoNamespace.Common.SetRect(window, rect);
 
 }

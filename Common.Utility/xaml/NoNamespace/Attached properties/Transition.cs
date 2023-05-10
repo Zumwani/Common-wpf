@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Media.Animation;
 
-namespace Common.Utility.AttachedProperties;
+namespace Common.Utility.xaml.NoNamespace;
 
 public static class Transition
 {
