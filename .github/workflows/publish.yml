@@ -25,3 +25,8 @@ jobs:
         fetch-depth: 0 # Get all history to allow automatic versioning using MinVer
     - name: Push Nupkg to GitHub Packages
       uses: tanaka-takayoshi/nuget-publish-to-github-packages-action@v2.1
+      with:
+        nupkg-path:  './nuget/*.nupkg'
+        repo-owner:  'common-wfp'
+        gh-user:  'zumwani'
+        token:  ${{ secrets.GITHUB_TOKEN }}
