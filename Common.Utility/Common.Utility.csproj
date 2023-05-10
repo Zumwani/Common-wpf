@@ -9,8 +9,7 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<VersionPrefix>1.</VersionPrefix>
-		<Version>$(VersionPrefix)$([System.DateTime]::Now.ToString(yyyyMMddHH))</Version>
+		<PackageVersion>$([System.DateTime]::Now.ToString("yyyy.MM.dd.HHmmss"))</PackageVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup>
