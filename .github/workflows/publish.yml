@@ -4,18 +4,33 @@ on:
   push:
     branches:
       - 'main'       # Run the workflow when pushing to the main branch
-      
+
 jobs:
-  publish:
+  build:
+
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1.5.0
       with:
-        fetch-depth: 0 # Get all history to allow automatic versioning using MinVer
-    - name: Push Nupkg to GitHub Packages
-      uses: tanaka-takayoshi/nuget-publish-to-github-packages-action@v2.1
-      with:
-        nupkg-path:  './nuget/*.nupkg'
-        repo-owner:  'common-wfp'
-        gh-user:  'zumwani'
-        token:  ${{ secrets.TOKEN }}
+        dotnet-version: 3.1.301
+        # Authenticates packages to push to GPR
+        source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+      env:
+        NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Pack
+      run: dotnet pack --no-build --configuration Release
+    - name: PushNuget
+      run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.PUBLISH_TO_NUGET_ORG }} --skip-duplicate
+    - name: PushGithub
+      # The github token is automatically being pulled from the workflow
+      run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate
+      env:
+        NUGET_AUTH_TOKEN: ${{ github.token }}
