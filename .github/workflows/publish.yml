@@ -22,17 +22,7 @@ jobs:
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
-
-    - name: Copy version to project file
-      continue-on-error: false
-      run: |
-        ./VersionIncrementer.exe -copy Common.Settings/Common.Settings.csproj Common.Settings/Version.props
-
-    - name: Copy version to project file
-      continue-on-error: false
-      run: |
-        ./VersionIncrementer.exe -copy Common.Utility/Common.Utility.csproj Common.Utility/Version.props
-
+      
     - name: Publish Common-wpf.Settings
       continue-on-error: true
       uses: brandedoutcast/publish-nuget@v2.5.2
