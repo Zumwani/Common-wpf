@@ -5,29 +5,39 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Authors>Common-wpf</Authors>
-    <PackageId>Common-wpf.Settings</PackageId>
-    <Product>Common-wpf.Settings</Product>
-    <Description>Provides a quick and easy way to create settings for your wpf app that is easily accessable from both xaml and code behind.</Description>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/Zumwani/Common-wpf</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Zumwani/Common-wpf</RepositoryUrl>
-    <PackageTags>wpf;xaml;settings;config;configuration;</PackageTags>
-    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
-    <Version></Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<VersionPrefix>1.</VersionPrefix>
+	<Version>$(VersionPrefix).$([System.DateTime]::Now.ToString(yyyyMMddHHii))</Version>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	<EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
+	<PropertyGroup>
+		<Authors>Common-wpf</Authors>
+		<PackageId>Common-wpf.Utility</PackageId>
+		<Product>Common-wpf.Utility</Product>
+		<Description>Provides a quick and easy way to create settings for your wpf app that is easily accessable from both xaml and code behind.</Description>
+		<PackageTags>wpf;xaml;settings;config;configuration;</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/Zumwani/Common-wpf</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Zumwani/Common-wpf</RepositoryUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageOutputPath>..\nuget</PackageOutputPath>
+	</PropertyGroup>
 
-  <!--<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(BuildingInsideVisualStudio)' == 'true'">
-    <Exec Command="&quot;$(SolutionDir)\VersionIncrementer.exe&quot; -increment &quot;$(ProjectPath)&quot; &quot;$(ProjectDir)\Version.props&quot;" />
-  </Target>-->
+	<ItemGroup>
+		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
 
 </Project>
