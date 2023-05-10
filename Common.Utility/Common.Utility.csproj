@@ -1,34 +1,39 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<Version>1.0.39</Version>
 		<OutputType>Library</OutputType>
 		<TargetFramework>net6.0-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
-		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<Platforms>AnyCPU;x64;x86</Platforms>
+		<Nullable>enable</Nullable>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Version>1.0.39</Version>
 		<Authors>Common-wpf</Authors>
 		<PackageId>Common-wpf.Utility</PackageId>
 		<Product>Common-wpf.Utility</Product>
 		<Description>Contains various utility classes for working with wpf. Check repo for a list of available utilities.</Description>
+		<PackageTags>wpf;xaml;</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/Zumwani/Common-wpf</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Zumwani/Common-wpf</RepositoryUrl>
-		<PackageTags>wpf;xaml;</PackageTags>
-		<Platforms>AnyCPU;x64;x86</Platforms>
-		<Nullable>enable</Nullable>
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<PackageReadmeFile>../README.md</PackageReadmeFile>
 	</PropertyGroup>
 	
 	<ItemGroup>
-		<None Include="..\LICENSE">
-			<Pack>True</Pack>
-			<PackagePath></PackagePath>
-		</None>
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="ShellUtility.Screens" Version="1.0.50" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 	
 </Project>
