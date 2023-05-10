@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<VersionPrefix>1.</VersionPrefix>
-	<Version>$(VersionPrefix).$([System.DateTime]::Now.ToString(yyyyMMddHH))</Version>
+	<Version>$(VersionPrefix)$([System.DateTime]::Now.ToString(yyyyMMddHH))</Version>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
