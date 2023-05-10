@@ -23,10 +23,8 @@ jobs:
         NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
     - name: Install dependencies
       run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
     - name: Pack
-      run: dotnet pack --no-build --configuration Release
+      run: dotnet pack --configuration Release
     - name: PushNuget
       run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
     - name: PushGithub
