@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Settings", "Common.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Utility", "Common.Utility\Common.Utility.csproj", "{E4579B7E-6EB0-4C8A-A252-181C7DFC564F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.VersionIncrementer", "Common.VersionIncrementer\Common.VersionIncrementer.csproj", "{D20907F7-9E14-4787-9C58-F58F37CCC7A0}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
