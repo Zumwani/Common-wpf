@@ -27,9 +27,11 @@ jobs:
     - name: Pack
       run: dotnet pack --configuration Release
     - name: PushNuget
+      if: always()
       run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
     - name: PushGithub
       # The github token is automatically being pulled from the workflow
+      if: always()
       run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate
       env:
         NUGET_AUTH_TOKEN: ${{ github.token }}
