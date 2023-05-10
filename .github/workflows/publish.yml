@@ -6,18 +6,9 @@ on:
   push:
     branches:
       - 'main'       # Run the workflow when pushing to the main branch
-
-env:
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-  DOTNET_NOLOGO: true
-  NuGetDirectory: ${{ github.workspace}}/nuget
-
-defaults:
-  run:
-    shell: pwsh
-
+      
 jobs:
-  create_nuget:
+  publish:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
