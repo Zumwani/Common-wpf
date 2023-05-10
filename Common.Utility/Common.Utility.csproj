@@ -8,11 +8,12 @@
 		<Nullable>enable</Nullable>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<VersionPrefix>1.</VersionPrefix>
+		<Version>$(VersionPrefix).$([System.DateTime]::Now.ToString(yyyyMMddHHii))</Version>
 	</PropertyGroup>
-
+	
 	<PropertyGroup>
-		<Version>1.0.39</Version>
 		<Authors>Common-wpf</Authors>
 		<PackageId>Common-wpf.Utility</PackageId>
 		<Product>Common-wpf.Utility</Product>
