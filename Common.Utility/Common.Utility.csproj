@@ -10,13 +10,13 @@
 		<PackageId>Common-wpf.Utility</PackageId>
 		<Product>Common-wpf.Utility</Product>
 		<Description>Contains various utility classes for working with wpf. Check repo for a list of available utilities.</Description>
-		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/Zumwani/Common-wpf</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Zumwani/Common-wpf</RepositoryUrl>
 		<PackageTags>wpf;xaml;</PackageTags>
-		<RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
 		<Platforms>AnyCPU;x64;x86</Platforms>
 		<Nullable>enable</Nullable>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 	
 	<ItemGroup>
