@@ -1,9 +1,9 @@
-﻿using Common.Settings.Utility;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Data;
+using Common.Settings.Utility;
 
 namespace Common.Settings.Internal;
 
@@ -11,6 +11,7 @@ namespace Common.Settings.Internal;
 public abstract class Setting : Binding, INotifyPropertyChanged
 {
 
+    /// <summary>Creates a new <see cref="Setting"/>.</summary>
     public Setting(object source)
     {
         Source = source;
@@ -22,6 +23,7 @@ public abstract class Setting : Binding, INotifyPropertyChanged
 
     #region INotifyPropertyChanged
 
+    /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
 
     /// <summary>Raises <see cref="PropertyChanged"/>, by default.</summary>
@@ -52,6 +54,7 @@ public abstract class Setting : Binding, INotifyPropertyChanged
     #endregion
     #region Get / set value
 
+    /// <summary>Sets the value of this setting.</summary>
     protected void SetValue(object? value)
     {
 
@@ -82,6 +85,7 @@ public abstract class Setting : Binding, INotifyPropertyChanged
             prop.PropertyChanged -= Value_PropertyChanged;
     }
 
+    /// <summary>Gets the value of this setting.</summary>
     protected bool GetValue([NotNullWhen(true)] out object? value) =>
         (value = Value ?? DefaultValue) is not null;
 
@@ -116,6 +120,7 @@ public abstract class Setting : Binding, INotifyPropertyChanged
     internal bool SetRawInternal(object? value) =>
         SetRaw(value);
 
+    /// <summary>Occurs before saving to persistent store.</summary>
     public virtual void OnBeforeSave()
     { }
 

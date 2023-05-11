@@ -5,9 +5,11 @@ using System.Windows.Media.Animation;
 
 namespace Common.Utility;
 
+/// <summary>Provides utility functions relating to <see cref="Storyboard"/>.</summary>
 public static class StoryboardUtility
 {
 
+    /// <summary>Begins and <see langword="await"/> this <see cref="Storyboard"/>.</summary>
     public static Task BeginAsync(this Storyboard? storyboard, FrameworkElement? element = null)
     {
 

@@ -14,13 +14,21 @@ namespace Common.Settings.JsonConverters;
 public class RectJsonConverter : JsonConverter<Rect?>
 {
 
+    /// <summary>Json serializer does, at this time, require separate converters for nullable and non-nullable, this is the non-nullable version of <see cref="RectJsonConverter"/>.</summary>
     public class NonNullable : JsonConverter<Rect>
     {
+
         static readonly RectJsonConverter converter = new();
+
+        /// <inheritdoc/>
         public override Rect Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => converter.Read(ref reader, typeToConvert, options) ?? default;
+
+        /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, Rect value, JsonSerializerOptions options) => converter.Write(writer, value, options);
+
     }
 
+    /// <inheritdoc/>
     public override Rect? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
 
@@ -56,6 +64,7 @@ public class RectJsonConverter : JsonConverter<Rect?>
 
     }
 
+    /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, Rect? value, JsonSerializerOptions options)
     {
 

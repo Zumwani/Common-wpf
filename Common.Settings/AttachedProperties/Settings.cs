@@ -1,18 +1,23 @@
-﻿using Common.Settings.Utility;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Markup;
+using Common.Settings.Utility;
 
 [assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "Common.Utility.AttachedProperties")]
 namespace Common.Settings.AttachedProperties;
 
+/// <summary>Represents the 'settings:' attached property.</summary>
 public static class Settings
 {
 
     #region Save Position
 
+    /// <summary>Gets whatever the position is automatically saved.</summary>
     public static bool GetSavePosition(Window window) => (bool)window.GetValue(SavePositionProperty);
+
+    /// <summary>Sets whatever the position is automatically saved.</summary>
     public static void SetSavePosition(Window window, bool value) => window.SetValue(SavePositionProperty, value);
 
+    /// <summary>Represents the attached property 'SavePosition'.</summary>
     public static readonly DependencyProperty SavePositionProperty =
         DependencyProperty.RegisterAttached("SavePosition", typeof(bool), typeof(Settings), new PropertyMetadata(false, OnSavePositionChanged));
 

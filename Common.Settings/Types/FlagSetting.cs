@@ -1,9 +1,10 @@
-﻿using Common.Settings.Internal;
+﻿using System.Collections.Specialized;
+using Common.Settings.Internal;
 using Common.Settings.Utility;
-using System.Collections.Specialized;
 
 namespace Common.Settings.Types;
 
+/// <summary><![CDATA[Represents a setting of type Dictionary<T, bool>.]]></summary>
 public abstract class FlagSetting<T, TSelf> : SingletonSetting<TSelf>, INotifyCollectionChanged
     where TSelf : FlagSetting<T, TSelf>, new()
     where T : notnull
@@ -42,6 +43,7 @@ public abstract class FlagSetting<T, TSelf> : SingletonSetting<TSelf>, INotifyCo
 
     #region Constructor / Setup
 
+    /// <inheritdoc/>
     protected override void OnSetupSingleton() =>
         Reload();
 

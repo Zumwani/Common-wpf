@@ -1,23 +1,22 @@
-﻿using Common.Settings.Internal;
-using Microsoft.Win32;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using System.Windows;
+using Common.Settings.Internal;
+using Microsoft.Win32;
 using path = System.IO.Path;
 
 namespace Common.Settings.Utility;
 
-//TODO: Add SettingsUtility.Reload()
-//TODO: Make sure singleton actually works, and proxies not being initialized as singleton / actually working at all
-
-//TODO: Update example
-
+/// <summary>Specifies the backend to use as persistent store.</summary>
 public enum Backend
 {
-    Registry, FileSystem
+    /// <summary>Specifies that settings should be stored in the registry.</summary>
+    Registry,
+    /// <summary>Specifies that settings should be stored in files.</summary>
+    FileSystem
 }
 
 /// <summary>Provides utility methods relating to settings.</summary>
@@ -115,6 +114,7 @@ public static partial class SettingsUtility
 
     /// <summary>Saves the setting.</summary>
     /// <param name="delay">Determines whatever a delay should be used before writing, this prevent spam writes.</param>
+    /// <param name="setting">The setting to save.</param>
     public static void Save(this Setting setting, bool delay = true)
     {
 
@@ -131,6 +131,8 @@ public static partial class SettingsUtility
         Save(setting.Name, null, delay);
 
     /// <summary>Saves <paramref name="value"/> to the registry, using <paramref name="key"/> as value name.</summary>
+    /// <param name="key">The key to save.</param>
+    /// <param name="value">The value to save.</param>
     /// <param name="delay">Determines whatever a delay should be used before writing, this prevent spam writes.</param>
     public static void Save(string key, object? value, bool delay = true)
     {

@@ -14,11 +14,18 @@ using ShellUtility.Screens;
 
 namespace Common.Utility.xaml.NoNamespace;
 
+/// <summary>Specifies what to clamp a window to.</summary>
 public enum ClampToScreenOption
 {
-    None, Screen, WorkArea
+    /// <summary>Specifies that the window should not be clamped.</summary>
+    None,
+    /// <summary>Specifies that the window should be clamped to the screen.</summary>
+    Screen,
+    /// <summary>Specifies that the window should be clamped to the work area of the screen.</summary>
+    WorkArea
 }
 
+/// <summary>Contains attached properties for 'Common.'.</summary>
 public static class Common
 {
 
@@ -26,12 +33,15 @@ public static class Common
 
     #region ContextMenuOnLeftClick
 
+    /// <summary>Gets whatever context menu should open on left click.</summary>
     public static bool GetContextMenuOnLeftClick(ButtonBase obj) =>
         (bool)obj.GetValue(ContextMenuOnLeftClickProperty);
 
+    /// <summary>Sets whatever context menu should open on left click.</summary>
     public static void SetContextMenuOnLeftClick(ButtonBase obj, bool value) =>
         obj.SetValue(ContextMenuOnLeftClickProperty, value);
 
+    /// <summary>The dependency property that determines whatever context menu should open on left click.</summary>
     public static readonly DependencyProperty ContextMenuOnLeftClickProperty =
         DependencyProperty.RegisterAttached("ContextMenuOnLeftClick", typeof(bool), typeof(Common), new PropertyMetadata(false, OnContextMenuOnLeftClickChanged));
 
@@ -134,12 +144,15 @@ public static class Common
     #endregion
     #region CenterContextMenu
 
+    /// <summary>Gets whatever context menu should be centered.</summary>
     public static bool GetCenterContextMenu(ButtonBase obj) =>
         (bool)obj.GetValue(CenterContextMenuProperty);
 
+    /// <summary>Sets whatever context menu should be centered.</summary>
     public static void SetCenterContextMenu(ButtonBase obj, bool value) =>
         obj.SetValue(CenterContextMenuProperty, value);
 
+    /// <summary>The dependency property that determines whatever context menu should be centered.</summary>
     public static readonly DependencyProperty CenterContextMenuProperty =
         DependencyProperty.RegisterAttached("CenterContextMenu", typeof(bool), typeof(Common), new PropertyMetadata(false));
 
@@ -150,21 +163,27 @@ public static class Common
 
     #region IsMouseDown property
 
+    /// <summary>Gets whatever left mouse is down.</summary>
     public static bool GetIsMouseLeftDown(UIElement obj) =>
         (bool)obj.GetValue(IsMouseLeftDownProperty);
 
+    /// <summary>Sets whatever left mouse is down.</summary>
     public static void SetIsMouseLeftDown(UIElement obj, bool value) =>
         obj.SetValue(IsMouseLeftDownProperty, value);
 
+    /// <summary>The dependency property that determines whatever the left mouse is down.</summary>
     public static readonly DependencyProperty IsMouseLeftDownProperty =
         DependencyProperty.RegisterAttached("IsMouseLeftDown", typeof(bool), typeof(Common), new PropertyMetadata(false));
 
+    /// <summary>Gets whatever <see cref="IsMouseLeftDownProperty"/> should be active.</summary>
     public static bool GetEnableIsMouseDown(DependencyObject obj) =>
         (bool)obj.GetValue(EnableIsMouseDownProperty);
 
+    /// <summary>Sets whatever <see cref="IsMouseLeftDownProperty"/> should be active.</summary>
     public static void SetEnableIsMouseDown(DependencyObject obj, bool value) =>
         obj.SetValue(EnableIsMouseDownProperty, value);
 
+    /// <summary>The dependency property that determines whatever we should track if left mouse is down.</summary>
     public static readonly DependencyProperty EnableIsMouseDownProperty =
         DependencyProperty.RegisterAttached("EnableIsMouseDown", typeof(bool), typeof(Common), new PropertyMetadata(false, OnEnableIsMouseLeftDownPropertyChanged));
 
@@ -199,9 +218,12 @@ public static class Common
     #endregion
     #region IsVisible
 
+    /// <summary>Gets whatever element is <see cref="Visibility.Visibility"/>.</summary>
     public static bool? GetIsVisible(FrameworkElement obj) => (bool?)obj.GetValue(IsVisibleProperty);
+    /// <summary>Sets whatever element is <see cref="Visibility.Visibility"/>.</summary>
     public static void SetIsVisible(FrameworkElement obj, bool? value) => obj.SetValue(IsVisibleProperty, value);
 
+    /// <summary>The dependency property that determines whatever element is <see cref="Visibility.Visibility"/>.</summary>
     public static readonly DependencyProperty IsVisibleProperty =
         DependencyProperty.RegisterAttached("IsVisible", typeof(bool?), typeof(Common), new PropertyMetadata(null, OnIsVisibleChanged));
 
@@ -211,9 +233,12 @@ public static class Common
     #endregion
     #region IsCollapsed
 
+    /// <summary>Gets whatever element is <see cref="Visibility.Collapsed"/>.</summary>
     public static bool? GetIsCollapsed(FrameworkElement obj) => (bool?)obj.GetValue(IsCollapsedProperty);
+    /// <summary>Gets whatever element is <see cref="Visibility.Collapsed"/>.</summary>
     public static void SetIsCollapsed(FrameworkElement obj, bool? value) => obj.SetValue(IsCollapsedProperty, value);
 
+    /// <summary>The dependency property that determines whatever element is <see cref="Visibility.Collapsed"/>.</summary>
     public static readonly DependencyProperty IsCollapsedProperty =
         DependencyProperty.RegisterAttached("IsCollapsed", typeof(bool?), typeof(Common), new PropertyMetadata(null, OnIsCollapsedChanged));
 
@@ -223,9 +248,12 @@ public static class Common
     #endregion
     #region IsHidden
 
+    /// <summary>Gets whatever element is <see cref="Visibility.Hidden"/>.</summary>
     public static bool? GetIsHidden(FrameworkElement obj) => (bool?)obj.GetValue(IsHiddenProperty);
+    /// <summary>Sets whatever element is <see cref="Visibility.Hidden"/>.</summary>
     public static void SetIsHidden(FrameworkElement obj, bool? value) => obj.SetValue(IsHiddenProperty, value);
 
+    /// <summary>The dependency property that determines whatever element is <see cref="Visibility.Hidden"/>.</summary>
     public static readonly DependencyProperty IsHiddenProperty =
         DependencyProperty.RegisterAttached("IsHidden", typeof(bool?), typeof(Common), new PropertyMetadata(null, OnIsHiddenChanged));
 
@@ -241,6 +269,7 @@ public static class Common
     /// <summary>Sets Scale.</summary>
     public static void SetScale(FrameworkElement obj, double value) => obj.SetValue(ScaleProperty, value);
 
+    /// <summary>The dependency property that determines the <see cref="FrameworkElement.LayoutTransform"/>+<see cref="ScaleTransform"/>.</summary>
     public static readonly DependencyProperty ScaleProperty =
         DependencyProperty.RegisterAttached("Scale", typeof(double), typeof(Common), new PropertyMetadata(default(double), static (s, e) => OnScaleChanged((FrameworkElement)s, e)));
 
@@ -320,24 +349,33 @@ public static class Common
 
     #region IsResizing
 
+    /// <summary>Gets whatever the window is resizing.</summary>
     public static bool GetIsResizing(Window obj) => (bool)obj.GetValue(IsResizingProperty);
+    /// <summary>Sets whatever the window is resizing.</summary>
     public static void SetIsResizing(Window obj, bool value) => obj.SetValue(IsResizingProperty, value);
 
+    /// <summary>Gets whatever the window is moving.</summary>
     public static bool GetIsMoving(Window obj) => (bool)obj.GetValue(IsMovingProperty);
+    /// <summary>Sets whatever the window is moving.</summary>
     public static void SetIsMoving(Window obj, bool value) => obj.SetValue(IsMovingProperty, value);
 
+    /// <summary>The dependency property that determines the whatever the window is resizing.</summary>
     public static readonly DependencyProperty IsResizingProperty =
         DependencyProperty.RegisterAttached("IsResizing", typeof(bool), typeof(Common), new PropertyMetadata(null));
 
+    /// <summary>The dependency property that determines the whatever the window is moving.</summary>
     public static readonly DependencyProperty IsMovingProperty =
         DependencyProperty.RegisterAttached("IsMoving", typeof(bool), typeof(Common), new PropertyMetadata(false));
 
     #endregion
     #region ClampToMonitors
 
+    /// <summary>Gets whatever the window should be clamped.</summary>
     public static ClampToScreenOption GetClampToMonitors(Window obj) => (ClampToScreenOption)obj.GetValue(ClampToMonitorsProperty);
+    /// <summary>Sets whatever the window should be clamped.</summary>
     public static void SetClampToMonitors(Window obj, ClampToScreenOption value) => obj.SetValue(ClampToMonitorsProperty, value);
 
+    /// <summary>The dependency property that determines the whatever the window should be clamped.</summary>
     public static readonly DependencyProperty ClampToMonitorsProperty =
         DependencyProperty.RegisterAttached("ClampToMonitors", typeof(ClampToScreenOption), typeof(Common), new PropertyMetadata(ClampToScreenOption.None, OnClampToMonitorsChanged));
 
@@ -392,6 +430,7 @@ public static class Common
     /// <para><see langword="null"/> will use <see cref="ClampToMonitorsProperty"/> for <paramref name="window"/>.</para>
     /// <para>If <see cref="ClampToScreenOption.None"/> is specified then this method will have no effect.</para>
     /// </param>
+    /// <param name="window">The window to clamp.</param>
     public static void EnsureClamped(this Window window, ClampToScreenOption? clampTo = null)
     {
 
@@ -562,7 +601,7 @@ public static class Common
         edge is WindowEdge.WMSZ_BOTTOM or WindowEdge.WMSZ_BOTTOMLEFT or WindowEdge.WMSZ_BOTTOMRIGHT;
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct WIN32Rectangle
+    struct WIN32Rectangle
     {
         public int Left;
         public int Top;
@@ -571,7 +610,7 @@ public static class Common
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct POINT
+    struct POINT
     {
 
         public int X;
@@ -639,7 +678,7 @@ public static class Common
         WM_SIZING = 0x0214
     }
 
-    public enum WindowEdge
+    enum WindowEdge
     {
         WMSZ_BOTTOM = 6,
         WMSZ_BOTTOMLEFT = 7,
@@ -654,9 +693,12 @@ public static class Common
     #endregion
     #region IsVisibleInAltTab
 
+    /// <summary>Gets whatever this window is visible in alt-tab.</summary>
     public static bool GetIsVisibleInAltTab(Window window) => (bool)window.GetValue(IsVisibleInAltTabProperty);
+    /// <summary>Sets whatever this window is visible in alt-tab.</summary>
     public static void SetIsVisibleInAltTab(Window window, bool value) => window.SetValue(IsVisibleInAltTabProperty, value);
 
+    /// <summary>The dependency property that determines whatever the window should be visible in alt-tab.</summary>
     public static readonly DependencyProperty IsVisibleInAltTabProperty =
         DependencyProperty.RegisterAttached("IsVisibleInAltTab", typeof(bool), typeof(Common), new PropertyMetadata(true, IsVisibleInAltTabChanged));
 
@@ -713,9 +755,12 @@ public static class Common
     #endregion
     #region Rect
 
+    /// <summary>Gets the rect of this window.</summary>
     public static Rect GetRect(Window obj) => (Rect)obj.GetValue(RectProperty);
+    /// <summary>Sets the rect of this window.</summary>
     public static void SetRect(Window obj, Rect value) => obj.SetValue(RectProperty, value);
 
+    /// <summary>The dependency property that determines what the rect of the window is.</summary>
     public static readonly DependencyProperty RectProperty =
         DependencyProperty.RegisterAttached("Rect", typeof(Rect), typeof(Common), new PropertyMetadata(default(Rect), OnRectChanged));
 
@@ -735,9 +780,12 @@ public static class Common
     #endregion
     #region Location
 
+    /// <summary>Gets the location of this window.</summary>
     public static Point GetLocation(Window obj) => (Point)obj.GetValue(LocationProperty);
+    /// <summary>Sets the location of this window.</summary>
     public static void SetLocation(Window obj, Point value) => obj.SetValue(LocationProperty, value);
 
+    /// <summary>The dependency property that determines what the location of the window is.</summary>
     public static readonly DependencyProperty LocationProperty =
         DependencyProperty.RegisterAttached("Location", typeof(Point), typeof(Common), new PropertyMetadata(default(Point), OnLocationChanged));
 
@@ -755,9 +803,12 @@ public static class Common
     #endregion
     #region Size
 
+    /// <summary>Gets the size of this window.</summary>
     public static Size GetSize(Window obj) => (Size)obj.GetValue(SizeProperty);
+    /// <summary>Sets the size of this window.</summary>
     public static void SetSize(Window obj, Size value) => obj.SetValue(SizeProperty, value);
 
+    /// <summary>The dependency property that determines what the size of the window is.</summary>
     public static readonly DependencyProperty SizeProperty =
         DependencyProperty.RegisterAttached("Size", typeof(Size), typeof(Common), new PropertyMetadata(default(Size), OnSizeChanged));
 
@@ -790,9 +841,12 @@ public static class Common
 
     #endregion
 
+    /// <summary>The dependency property that determines whatever the window should be pinned to the desktop.</summary>
     public static readonly DependencyProperty PinToDesktopProperty = DependencyProperty.RegisterAttached("PinToDesktop", typeof(bool), typeof(Common), new UIPropertyMetadata(false, OnPinToDesktopChanged));
 
+    /// <summary>Gets whatever the window should be pinned to the desktop.</summary>
     public static bool GetPinToDesktop(Window window) => (bool)window.GetValue(PinToDesktopProperty);
+    /// <summary>Sets whatever the window should be pinned to the desktop.</summary>
     public static void SetPinToDesktop(Window window, bool value) => window.SetValue(PinToDesktopProperty, value);
 
     static void OnPinToDesktopChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -850,10 +904,6 @@ public static class Common
     }
 
     #endregion
-
-    #endregion
-    #region App
-
 
     #endregion
 

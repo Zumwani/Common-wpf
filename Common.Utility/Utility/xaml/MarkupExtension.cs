@@ -7,6 +7,7 @@ namespace Common.Utility;
 public class MarkupExtension : System.Windows.Markup.MarkupExtension
 {
 
+    /// <summary>Returns <see langword="this"/>.</summary>
     public override object ProvideValue(IServiceProvider serviceProvider) =>
         this;
 

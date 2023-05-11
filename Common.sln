@@ -7,6 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Settings", "Common.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Utility", "Common.Utility\Common.Utility.csproj", "{E4579B7E-6EB0-4C8A-A252-181C7DFC564F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{54B99BEE-4701-41C8-A8A7-87A82C258F07}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,10 +26,6 @@ Global
 		{E4579B7E-6EB0-4C8A-A252-181C7DFC564F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4579B7E-6EB0-4C8A-A252-181C7DFC564F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4579B7E-6EB0-4C8A-A252-181C7DFC564F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D20907F7-9E14-4787-9C58-F58F37CCC7A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D20907F7-9E14-4787-9C58-F58F37CCC7A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D20907F7-9E14-4787-9C58-F58F37CCC7A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D20907F7-9E14-4787-9C58-F58F37CCC7A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

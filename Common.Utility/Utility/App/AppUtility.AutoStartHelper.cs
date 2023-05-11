@@ -8,12 +8,15 @@ public static partial class AppUtility
     /// <summary>An helper class for enabling or disabling auto start.</summary>
     public static AutoStartHelper AutoStart { get; } = new();
 
+    /// <summary>Represents a helper class for managing auto start.</summary>
     public class AutoStartHelper : NotifyProperty<bool>
     {
 
+        /// <inheritdoc/>
         protected override bool GetValue() =>
             (string?)Key?.GetValue(Info.PackageName) == Info.ExecutablePath.Quotify() + " " + param;
 
+        /// <inheritdoc/>
         protected override void OnSetValue(bool value, bool notify)
         {
             if (value)
@@ -37,6 +40,7 @@ public static partial class AppUtility
         public void Disable() => Value = false;
 
         string? param;
+        /// <summary>Gets or sets the parameter to use when app is auto started.</summary>
         public string? Parameter
         {
             get => param;

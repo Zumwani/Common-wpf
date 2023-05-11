@@ -7,6 +7,7 @@ namespace Common.Utility;
 public abstract class Command : MarkupExtension, ICommand
 {
 
+    /// <inheritdoc/>
     public event EventHandler? CanExecuteChanged;
 
     /// <inheritdoc cref="ICommand.CanExecute(object?)"/>
@@ -28,6 +29,7 @@ public abstract class Command : MarkupExtension, ICommand
 public abstract class Command<T> : MarkupExtension, ICommand
 {
 
+    /// <inheritdoc/>
     public event EventHandler? CanExecuteChanged;
 
     /// <inheritdoc cref="ICommand.CanExecute(object?)"/>

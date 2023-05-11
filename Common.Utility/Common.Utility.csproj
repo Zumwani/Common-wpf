@@ -22,7 +22,6 @@
 		<PackageProjectUrl>https://github.com/Zumwani/Common-wpf</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Zumwani/Common-wpf</RepositoryUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageOutputPath>..\nuget</PackageOutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>

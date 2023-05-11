@@ -11,6 +11,8 @@ public static partial class AppUtility
 {
 
     /// <summary>Gets if this instance is primary.</summary>
+    /// <param name="secondaryInstanceArgumentsHandler">Specifies a callback to handle app arguments, when a second instance is started.</param>
+    /// <param name="handleIfPrimaryInstanceToo">Calls <paramref name="secondaryInstanceArgumentsHandler"/> immediately.</param>
     /// <param name="mutexName">The name of the mutex, only has an effect if mutex is not already setup.</param>
     public static bool IsPrimaryInstance(ParseArguments? secondaryInstanceArgumentsHandler = null, bool handleIfPrimaryInstanceToo = true, string? mutexName = null)
     {
@@ -33,6 +35,8 @@ public static partial class AppUtility
     }
 
     /// <summary>Gets if this instance is secondary.</summary>
+    /// <param name="secondaryInstanceArgumentsHandler">Specifies a callback to handle app arguments, when a second instance is started.</param>
+    /// <param name="handleIfPrimaryInstanceToo">Calls <paramref name="secondaryInstanceArgumentsHandler"/> immediately.</param>
     /// <param name="mutexName">The name of the mutex, only has an effect if mutex is not already setup.</param>
     public static bool IsSecondaryInstance(ParseArguments? secondaryInstanceArgumentsHandler = null, bool handleIfPrimaryInstanceToo = true, string? mutexName = null)
     {
@@ -56,7 +60,7 @@ public static partial class AppUtility
 
     /// <summary>Releases mutex (single instance token) and restarts the app.</summary>
     /// <param name="asAdmin">Adds 'runas' verb when restarting.</param>
-    /// <param name="shutdownAction">The action to shutdown the app, defaults to <see cref="Application.Shutdown"/>, but can be overriden if necessary.</param>
+    /// <param name="shutdownAction">The action to shutdown the app, defaults to <see cref="Application.Shutdown()"/>, but can be overriden if necessary.</param>
     public static void Restart(bool asAdmin = false, Action? shutdownAction = null)
     {
 

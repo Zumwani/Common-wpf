@@ -8,16 +8,25 @@ using System.Windows.Media.Imaging;
 
 namespace Common.Settings.JsonConverters;
 
+/// <summary>A json converter that will convert <see cref="BitmapSource"/> to base64, and back.</summary>
 public class BitmapSourceJsonConverter : JsonConverter<BitmapSource?>
 {
 
+    /// <summary>Json serializer does, at this time, require separate converters for nullable and non-nullable, this is the non-nullable version of <see cref="BitmapSourceJsonConverter"/>.</summary>
     public class NonNullable : JsonConverter<BitmapSource>
     {
+
         static readonly BitmapSourceJsonConverter converter = new();
+
+        /// <inheritdoc/>
         public override BitmapSource Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => converter.Read(ref reader, typeToConvert, options) ?? throw new NullReferenceException("BitmapSource cannot be null.");
+
+        /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, BitmapSource value, JsonSerializerOptions options) => converter.Write(writer, value, options);
+
     }
 
+    /// <inheritdoc/>
     public override BitmapSource? Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options)
     {
 
@@ -47,6 +56,7 @@ public class BitmapSourceJsonConverter : JsonConverter<BitmapSource?>
 
     }
 
+    /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, BitmapSource? bitmap, JsonSerializerOptions options)
     {
 

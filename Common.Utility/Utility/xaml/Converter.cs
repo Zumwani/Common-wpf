@@ -172,15 +172,19 @@ public abstract class BetterConverter<TIn, TOut, TParameter> : MarkupExtension, 
 public abstract class BetterMultiConverter : MarkupExtension, IMultiValueConverter
 {
 
+    /// <inheritdoc/>
     public virtual object Convert(object[] values) =>
         throw new NotImplementedException();
 
+    /// <inheritdoc/>
     public virtual object[] ConvertBack(object value) =>
         throw new NotImplementedException();
 
+    /// <inheritdoc/>
     public virtual object Convert(object[] values, object parameter) =>
         Convert(values);
 
+    /// <inheritdoc/>
     public virtual object[] ConvertBack(object values, object parameter) =>
         ConvertBack(values);
 
@@ -196,7 +200,9 @@ public abstract class BetterMultiConverter : MarkupExtension, IMultiValueConvert
 public abstract class BetterMultiConverter<TIn, TOut> : MarkupExtension, IMultiValueConverter
 {
 
+    /// <inheritdoc/>
     public abstract TOut? Convert(TIn?[]? values);
+    /// <inheritdoc/>
     public virtual TIn[] ConvertBack(TOut? value) =>
         throw new NotImplementedException();
 
@@ -216,7 +222,9 @@ public abstract class BetterMultiConverter<TIn, TOut> : MarkupExtension, IMultiV
 public abstract class BetterMultiConverter<TIn, TOut, TParameter> : MarkupExtension, IMultiValueConverter
 {
 
+    /// <inheritdoc/>
     public abstract TOut Convert(TIn?[]? values, TParameter? parameter);
+    /// <inheritdoc/>
     public virtual TIn?[]? ConvertBack(TOut? value, TParameter? parameter) =>
         throw new NotImplementedException();
 

@@ -1,12 +1,13 @@
-﻿using Common.Settings.Internal;
-using Common.Settings.Utility;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using Common.Settings.Internal;
+using Common.Settings.Utility;
 
 namespace Common.Settings.Types;
 
+/// <summary>Represents a setting of <see cref="Dictionary{TKey, TValue}"/>.</summary>
 public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<TSelf>, IDictionary<TKey, TValue>, INotifyCollectionChanged
     where TSelf : DictionarySetting<TKey, TValue, TSelf>, new()
     where TKey : notnull
@@ -17,6 +18,7 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
     /// <summary>Gets whatever collection is empty.</summary>
     public override bool IsDefault => dict.Count == 0;
 
+    /// <inheritdoc/>
     protected override bool SetRaw(object? value)
     {
         if (value is KeyValuePair<TKey, TValue> kvp)
@@ -53,6 +55,7 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
 
     #region Constructor / Setup
 
+    /// <inheritdoc/>
     protected override void OnSetupSingleton()
     {
         CollectionChanged += List_CollectionChanged;
@@ -123,7 +126,6 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
     public bool Add(Tuple<TKey, TValue> value) =>
         Add(value.Item1, value.Item2);
 
-
     /// <summary>Sets the value. Adds key if it does not exist, sets value if it does.</summary>
     public void Set(TKey key, TValue value)
     {
@@ -156,6 +158,7 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
     public override void Reset() =>
         Clear();
 
+    /// <inheritdoc cref="Dictionary{TKey, TValue}.Clear"/>
     public void Clear()
     {
         dict.Clear();
@@ -174,37 +177,48 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
         return false;
     }
 
-    /// <inheritdoc cref="Remove(TKey, TValue)"/>
+    /// <inheritdoc cref="Dictionary{TKey, TValue}.Remove(TKey)"/>
     public bool Remove(KeyValuePair<TKey, TValue> value) =>
         Remove(value.Key);
 
-    /// <inheritdoc cref="Remove(TKey, TValue)"/>
+    /// <inheritdoc cref="Dictionary{TKey, TValue}.Remove(TKey)"/>
     public bool Remove((TKey key, TValue value) value) =>
         Remove(value.key);
 
-    /// <inheritdoc cref="Remove(TKey, TValue)"/>
+    /// <inheritdoc cref="Dictionary{TKey, TValue}.Remove(TKey)"/>
     public bool Remove(Tuple<TKey, TValue> value) =>
         Remove(value.Item1);
 
     #endregion
     #region IDictionary
 
+    /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
+    /// <inheritdoc/>
     public TValue this[TKey key] { get => ((IDictionary<TKey, TValue>)DictionarySetting<TKey, TValue, TSelf>.dict)[key]; set => ((IDictionary<TKey, TValue>)DictionarySetting<TKey, TValue, TSelf>.dict)[key] = value; }
 
+    /// <inheritdoc/>
     public ICollection<TKey> Keys => ((IDictionary<TKey, TValue>)DictionarySetting<TKey, TValue, TSelf>.dict).Keys;
+    /// <inheritdoc/>
     public ICollection<TValue> Values => ((IDictionary<TKey, TValue>)DictionarySetting<TKey, TValue, TSelf>.dict).Values;
+    /// <inheritdoc/>
     public int Count => ((ICollection<KeyValuePair<TKey, TValue>>)DictionarySetting<TKey, TValue, TSelf>.dict).Count;
+    /// <inheritdoc/>
     public bool IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)DictionarySetting<TKey, TValue, TSelf>.dict).IsReadOnly;
 
     void IDictionary<TKey, TValue>.Add(TKey key, TValue value) => ((IDictionary<TKey, TValue>)DictionarySetting<TKey, TValue, TSelf>.dict).Add(key, value);
     void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item) => ((ICollection<KeyValuePair<TKey, TValue>>)DictionarySetting<TKey, TValue, TSelf>.dict).Add(item);
 
+    /// <inheritdoc/>
     public bool ContainsKey(TKey key) => ((IDictionary<TKey, TValue>)DictionarySetting<TKey, TValue, TSelf>.dict).ContainsKey(key);
+    /// <inheritdoc/>
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value) => ((IDictionary<TKey, TValue>)DictionarySetting<TKey, TValue, TSelf>.dict).TryGetValue(key, out value);
+    /// <inheritdoc/>
     public bool Contains(KeyValuePair<TKey, TValue> item) => ((ICollection<KeyValuePair<TKey, TValue>>)DictionarySetting<TKey, TValue, TSelf>.dict).Contains(item);
+    /// <inheritdoc/>
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) => ((ICollection<KeyValuePair<TKey, TValue>>)DictionarySetting<TKey, TValue, TSelf>.dict).CopyTo(array, arrayIndex);
+    /// <inheritdoc/>
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() => ((IEnumerable<KeyValuePair<TKey, TValue>>)DictionarySetting<TKey, TValue, TSelf>.dict).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)DictionarySetting<TKey, TValue, TSelf>.dict).GetEnumerator();

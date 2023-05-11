@@ -2,9 +2,11 @@
 
 namespace Common.Utility.App;
 
+/// <summary>A binding extension to easily bind auto start functionality.</summary>
 public class AutoStartExtension : Binding
 {
 
+    /// <summary>Creates a new <see cref="AutoStartExtension"/>.</summary>
     public AutoStartExtension()
     {
 

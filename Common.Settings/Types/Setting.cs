@@ -1,7 +1,7 @@
-﻿using Common.Settings.Internal;
-using Common.Settings.Utility;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Data;
+using Common.Settings.Internal;
+using Common.Settings.Utility;
 
 namespace Common.Settings.Types;
 
@@ -11,18 +11,22 @@ public abstract class Setting<T, TSelf> : SingletonSetting<TSelf> where TSelf : 
 
     #region Constructors / Setup
 
+    /// <summary>Creates a new instance of <see cref="Setting{T, TSelf}"/>.</summary>
     public Setting() : this(new(nameof(Value)))
     { }
 
+    /// <summary>Creates a new instance of <see cref="Setting{T, TSelf}"/>.</summary>
     public Setting(PropertyPath path) : base()
     {
         Path = path;
         Mode = BindingMode.TwoWay;
     }
 
+    /// <inheritdoc/>
     protected override void OnSetupSingleton() =>
         SetValue(SettingsUtility.Read<T>(Name, out var value) ? value : DefaultValue);
 
+    /// <inheritdoc/>
     protected override void OnSetupProxy() =>
         Source = Current;
 
@@ -51,6 +55,7 @@ public abstract class Setting<T, TSelf> : SingletonSetting<TSelf> where TSelf : 
 
     #endregion
 
+    /// <inheritdoc/>
     protected override bool SetRaw(object? value)
     {
         if (typeof(T).IsAssignableFrom(value?.GetType()))
@@ -61,6 +66,7 @@ public abstract class Setting<T, TSelf> : SingletonSetting<TSelf> where TSelf : 
         return false;
     }
 
+    /// <inheritdoc/>
     public override void Reload()
     {
 
@@ -74,6 +80,7 @@ public abstract class Setting<T, TSelf> : SingletonSetting<TSelf> where TSelf : 
 
     }
 
+    /// <summary>Converts a <see cref="Setting{T, TSelf}"/> to <see cref="T"/>.</summary>
     public static implicit operator T?(Setting<T, TSelf> setting) =>
         setting.Value ?? setting.DefaultValue;
 

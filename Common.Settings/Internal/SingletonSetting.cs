@@ -9,6 +9,7 @@ public abstract class SingletonSetting<TSelf> : Setting where TSelf : SingletonS
     /// <summary>Gets the current singleton for <see cref="TSelf"/>.</summary>
     public static TSelf Current { get; } = new TSelf().Setup(isSingleton: true);
 
+    /// <summary>Creates a new <see cref="SingletonSetting{TSelf}"/>.</summary>
     public SingletonSetting() : base(Current)
     { }
 
