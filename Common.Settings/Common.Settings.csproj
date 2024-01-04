@@ -7,7 +7,7 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<PackageVersion>$([System.DateTime]::Now.ToString("yyyy.MM.dd.HHmmss"))</PackageVersion>
+	<PackageVersion>$([System.DateTime]::Now.ToString("yyyy.MM.dd.HHmm"))</PackageVersion>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
@@ -167,7 +168,7 @@ public static partial class SettingsUtility
     #endregion
     #region Delay
 
-    static readonly Dictionary<string, (CancellationTokenSource token, object? value)> pending = new();
+    static readonly ConcurrentDictionary<string, (CancellationTokenSource token, object? value)> pending = new();
     static void Delay(string name, object? value)
     {
 
@@ -175,7 +176,7 @@ public static partial class SettingsUtility
             token.token.Cancel();
 
         var t = new CancellationTokenSource();
-        pending.Add(name, (t, value));
+        pending.TryAdd(name, (t, value));
         _ = Task.Run(() => Delay(t.Token));
 
         async void Delay(CancellationToken token)
