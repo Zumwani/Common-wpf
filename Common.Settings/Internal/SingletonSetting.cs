@@ -24,6 +24,7 @@ public abstract class SingletonSetting<TSelf> : Setting where TSelf : SingletonS
             SettingsUtility.settings.Add(this);
             OnSetupSingleton();
             OnLoaded();
+            Task.Delay(10).ContinueWith(t => Reload());
 
         }
         else

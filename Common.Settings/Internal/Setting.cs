@@ -33,7 +33,7 @@ public abstract class Setting : Binding, INotifyPropertyChanged
     #endregion
     #region Properties
 
-    object? Value { get; set; }
+    protected virtual object? Value { get; set; }
 
     /// <summary>The default value of this setting.</summary>
     internal virtual object? DefaultValue { get; }
@@ -55,10 +55,10 @@ public abstract class Setting : Binding, INotifyPropertyChanged
     #region Get / set value
 
     /// <summary>Sets the value of this setting.</summary>
-    protected void SetValue(object? value)
+    protected void SetValue(object? value, bool ignoreEqualityCheck = false)
     {
 
-        if (Equals(value, Value))
+        if (!ignoreEqualityCheck && Equals(value, Value))
             return;
 
         UnregisterListeners();

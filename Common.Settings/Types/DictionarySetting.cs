@@ -13,6 +13,12 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
     where TKey : notnull
 {
 
+    protected override object? Value
+    {
+        get => dict;
+        set { }
+    }
+
     static readonly Dictionary<TKey, TValue> dict = new();
 
     /// <summary>Gets whatever collection is empty.</summary>
@@ -36,20 +42,20 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
     public override void Reload()
     {
 
-        if (Current != this && Current is not null)
+        if (Current != this)
         {
-            Current.Reload();
+            //Current.Reload();
             return;
         }
 
         var dict = new Dictionary<TKey, TValue>();
         if (SettingsUtility.Read<Dictionary<TKey, TValue>>(Name, out var items))
             foreach (var kvp in items)
-                _ = Add(kvp);
+                Add(kvp);
         else if (DefaultItems is not null)
             foreach (var item in DefaultItems)
                 Set(item);
-        SetValue(dict);
+        SetValue(dict, true);
 
     }
 

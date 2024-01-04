@@ -119,7 +119,7 @@ public static partial class SettingsUtility
     public static void Save(this Setting setting, bool delay = true)
     {
 
-        if (setting.IsSettingUp)
+        if (setting is null || setting.IsSettingUp)
             return;
 
         setting.OnBeforeSave();
