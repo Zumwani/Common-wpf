@@ -197,7 +197,7 @@ public static partial class SettingsUtility
         Initialize();
         if (Path is null) throw new InvalidOperationException("Path must be initialized.");
 
-        _ = pending.Remove(name);
+        _ = pending.TryRemove(name, out _);
 
         try
         {
