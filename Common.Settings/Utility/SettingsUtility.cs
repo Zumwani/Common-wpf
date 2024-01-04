@@ -197,7 +197,7 @@ public static partial class SettingsUtility
         Initialize();
         if (Path is null) throw new InvalidOperationException("Path must be initialized.");
 
-        _ = pending.TryRemove(name, out _);
+        pending.TryRemove(name, out _);
 
         try
         {
@@ -214,7 +214,7 @@ public static partial class SettingsUtility
             else if (Backend is Backend.FileSystem)
             {
 
-                _ = Directory.CreateDirectory(Path);
+                Directory.CreateDirectory(Path);
                 var file = path.Combine(Path, name + ".json");
 
                 File.WriteAllText(file, json);

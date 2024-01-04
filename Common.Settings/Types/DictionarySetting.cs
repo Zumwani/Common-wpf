@@ -48,14 +48,13 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
             return;
         }
 
-        var dict = new Dictionary<TKey, TValue>();
+        dict.Clear();
         if (SettingsUtility.Read<Dictionary<TKey, TValue>>(Name, out var items))
             foreach (var kvp in items)
-                Add(kvp);
+                dict.Set(kvp.Key, kvp.Value);
         else if (DefaultItems is not null)
             foreach (var item in DefaultItems)
-                Set(item);
-        SetValue(dict, true);
+                dict.Set(item.Key, item.Value);
 
     }
 
@@ -64,8 +63,8 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
     /// <inheritdoc/>
     protected override void OnSetupSingleton()
     {
-        CollectionChanged += List_CollectionChanged;
         Reload();
+        CollectionChanged += List_CollectionChanged;
     }
 
     void List_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

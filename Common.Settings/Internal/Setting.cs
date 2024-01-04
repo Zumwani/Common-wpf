@@ -73,7 +73,7 @@ public abstract class Setting : Binding, INotifyPropertyChanged
     void Value_PropertyChanged(object? sender, PropertyChangedEventArgs e) =>
         this.Save();
 
-    void RegisterListeners()
+    protected void RegisterListeners()
     {
         if (Value is INotifyPropertyChanged prop)
             prop.PropertyChanged += Value_PropertyChanged;
