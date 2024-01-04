@@ -15,7 +15,7 @@
 	<PropertyGroup>
 		<Authors>Common-wpf</Authors>
 		<PackageId>Common-wpf.Utility</PackageId>
-		<Product>Common-wpf.Utility</Product>
+		<Product>Common-wpf.Settings</Product>
 		<Description>Provides a quick and easy way to create settings for your wpf app that is easily accessable from both xaml and code behind.</Description>
 		<PackageTags>wpf;xaml;settings;config;configuration;</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
