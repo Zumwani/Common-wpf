@@ -36,7 +36,7 @@ public abstract class DictionarySetting<TKey, TValue, TSelf> : SingletonSetting<
     public override void Reload()
     {
 
-        if (Current != this)
+        if (Current != this && Current is not null)
         {
             Current.Reload();
             return;
